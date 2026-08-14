@@ -2,7 +2,7 @@
 
 English | [中文](desktop.zh.md)
 
-The Electron desktop shell (`apps/desktop`, `@deepseek-ai/dsh-desktop`): a window running the shipped web UI over the zero-port `dsh://` protocol carrier, sharing the CLI's profiles and harness home. The app boots the `desktop` profile (base + web-app + desktop-app bundle layers, see [`dsh-desktop-app`](../../packages/bundle/desktop-app/README.md)); the desktop-app layer disables the HTTP transport rows and the [`dsh-client-connection-ipc`](../../packages/client/connection-ipc/README.md) carrier serves the whole client — the boot-manifest-injected index, plugin bundles, vite assets, and `/api` (the in-process `toFetchHandler` gateway) — from one protocol authority. Unbounded event streams ride IPC push channels through a sandboxed preload bridge, because Electron buffers protocol responses. Open-path operations and directory selection use the ordinary host providers behind their capability services. The stack choice is recorded in the [desktop shell Agent Note](../../.agents/notes/implemented/architecture/2026-08-14-desktop-shell-tech-selection.md).
+The Electron desktop shell (`apps/desktop`, `@deepseek-ai/dsh-desktop`): a window running the shipped web UI over the zero-port `dsh://` protocol carrier, sharing the CLI's profiles and harness home. The app boots the `desktop` profile (base + web-app + desktop-app bundle layers, see [`dsh-desktop-app`](../../packages/bundle/desktop-app/README.md)); the desktop-app layer disables the HTTP transport rows and the [`dsh-client-connection-ipc`](../../packages/client/connection-ipc/README.md) carrier serves the whole client — the boot-manifest-injected index, plugin bundles, vite assets, and `/api` (the in-process `toFetchHandler` gateway) — from one protocol authority. Unbounded event streams ride IPC push channels through a sandboxed preload bridge, because Electron buffers protocol responses. Open-path operations and directory selection use the existing native host providers behind their capability services; Electron-specific providers can replace them without changing consumers. The stack choice is recorded in the [desktop shell Agent Note](../../.agents/notes/implemented/architecture/2026-08-14-desktop-shell-tech-selection.md).
 
 ## Services
 
@@ -35,4 +35,51 @@ Source: [`packages/bundle/desktop-app/src/index.ts:31`](../../packages/bundle/de
 Runtime values the desktop carrier and surface rows consume.
 
 Source: [`packages/bundle/desktop-app/src/index.ts:37`](../../packages/bundle/desktop-app/src/index.ts)
+
+<a id="ctxelectrondirectorypickerruntime--electrondirectorypickerruntime"></a>
+
+### `ctx.electronDirectoryPickerRuntime` — `ElectronDirectoryPickerRuntime`
+
+Application-owned Electron directory dialog available to the host tree.
+
+```ts cordis-catalog
+/**
+ * Open one Electron directory dialog.
+ * @param signal - caller/connection lifetime.
+ * @returns the selected absolute path unchanged, or null when cancelled.
+ */
+pickDirectory(signal: AbortSignal): Promise<string | null>
+```
+
+Source: [`packages/host/directory-picker-electron/src/index.ts:15`](../../packages/host/directory-picker-electron/src/index.ts)
+
+<a id="ctxnativepathruntime--nativepathruntime"></a>
+
+### `ctx.nativePathRuntime` — `NativePathRuntime`
+
+Native path operations supplied by an application-owned desktop runtime.
+
+```ts cordis-catalog
+/**
+ * Hand a filesystem path to the operating system's associated application.
+ * @param path - Host-resolved path; implementations must not reinterpret it.
+ * @param signal - Caller lifetime.
+ * @returns when the operating-system handoff has completed.
+ */
+openPath(path: string, signal: AbortSignal): Promise<void>
+
+/**
+ * Hand a text document to the desktop's associated editor.
+ * @param path - Host-resolved document path; implementations must not reinterpret it.
+ * @param signal - Caller lifetime.
+ * @returns when the operating-system handoff has completed.
+ */
+openTextFile(path: string, signal: AbortSignal): Promise<void>
+
+/** Reports the desktop-handoff capability this runtime provides.
+ * @returns whether this runtime can hand paths to a user-visible desktop. */
+canOpenPath(): boolean
+```
+
+Source: [`packages/host/apiproxy/src/index.ts:43`](../../packages/host/apiproxy/src/index.ts)
 <!-- END GENERATED cordis-surface -->

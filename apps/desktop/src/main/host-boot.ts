@@ -37,6 +37,8 @@ import { DSH_LAUNCH_ENVIRONMENT_KEY } from '@deepseek-ai/dsh-launch-environment'
 import { provideCmdline } from '@deepseek-ai/dsh-cmdline'
 import type {} from '@deepseek-ai/dsh-desktop-app'
 import type {} from '@deepseek-ai/dsh-host-apiproxy'
+import type {} from '@deepseek-ai/dsh-host-directory-picker-electron'
+import type { DesktopNativeRuntime } from './native.ts'
 import { createProcessShutdown, type ProcessShutdown } from './process-shutdown.ts'
 
 const NAME = 'dsh'
@@ -188,6 +190,8 @@ export interface BootDesktopHostOptions {
   patchFiles: readonly string[]
   /** The invocation's inner arguments, handed to the tree through `ctx.cmdlineArgs`. */
   args: readonly string[]
+  /** Electron-native operations; absent only in the plain-Node headless smoke. */
+  native?: DesktopNativeRuntime
 }
 
 /**
@@ -239,6 +243,10 @@ export async function bootDesktopHost(options: BootDesktopHostOptions): Promise<
     // built. The desktop-app bundle republishes these as desktopRuntime for
     // the protocol carrier.
     hostCtx.provide('desktopApp', { distRoot: rendererDistRoot() })
+    if (options.native !== undefined) {
+      hostCtx.provide('nativePathRuntime', options.native.path)
+      hostCtx.provide('electronDirectoryPickerRuntime', options.native.directoryPicker)
+    }
     provideCmdline(hostCtx, {
       args: options.args,
       exit: code => void shutdown.shutdown(code),

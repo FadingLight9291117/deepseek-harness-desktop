@@ -587,6 +587,19 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'electronDirectoryPickerRuntime',
+    summary: 'Application-owned Electron directory dialog available to the host tree.',
+    description: 'Application-owned Electron directory dialog available to the host tree.',
+    methods: [
+      {
+        signature: 'pickDirectory(signal: AbortSignal): Promise<string | null>',
+        description: 'Open one Electron directory dialog.',
+        parameters: [{ name: 'signal', description: 'caller/connection lifetime.' }],
+        returns: 'the selected absolute path unchanged, or null when cancelled.',
+      },
+    ],
+  },
+  {
     key: 'fs',
     summary: 'Abstract filesystem provider.',
     description: 'Abstract filesystem provider. Targets must preserve identity across aliases; reads expose regular UTF-8 text or typed errors, listings are stable and content-free, and mutations are atomic. Optional guards add stale protection without changing the unguarded provider contract.',
@@ -927,6 +940,31 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Delete one feedback item. Absence is successful regardless of the supplied version; an existing item requires an exact version match.',
         parameters: [{ name: 'request', description: 'Session, message, and observed item version.' }],
         returns: 'the stable absent postcondition, or an explicit failure.',
+      },
+    ],
+  },
+  {
+    key: 'nativePathRuntime',
+    summary: 'Native path operations supplied by an application-owned desktop runtime.',
+    description: 'Native path operations supplied by an application-owned desktop runtime.',
+    methods: [
+      {
+        signature: 'openPath(path: string, signal: AbortSignal): Promise<void>',
+        description: 'Hand a filesystem path to the operating system\'s associated application.',
+        parameters: [{ name: 'path', description: 'Host-resolved path; implementations must not reinterpret it.' }, { name: 'signal', description: 'Caller lifetime.' }],
+        returns: 'when the operating-system handoff has completed.',
+      },
+      {
+        signature: 'openTextFile(path: string, signal: AbortSignal): Promise<void>',
+        description: 'Hand a text document to the desktop\'s associated editor.',
+        parameters: [{ name: 'path', description: 'Host-resolved document path; implementations must not reinterpret it.' }, { name: 'signal', description: 'Caller lifetime.' }],
+        returns: 'when the operating-system handoff has completed.',
+      },
+      {
+        signature: 'canOpenPath(): boolean',
+        description: 'Reports the desktop-handoff capability this runtime provides.',
+        parameters: [],
+        returns: 'whether this runtime can hand paths to a user-visible desktop.',
       },
     ],
   },

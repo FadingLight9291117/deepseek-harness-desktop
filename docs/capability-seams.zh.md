@@ -111,6 +111,9 @@ flowchart LR
   pkg_agent_spine_demo["agent-spine-demo"]
   pkg_desktop_app["desktop-app"]
   svc_desktopApp["ctx.desktopApp<br/>Desktop assembly facts"]
+  pkg_directory_picker_electron["directory-picker-electron"]
+  svc_electronDirectoryPickerRuntime["ctx.electronDirectoryPickerRuntime<br/>Electron directory picker runtime"]
+  svc_nativePathRuntime["ctx.nativePathRuntime<br/>Native path handoff runtime"]
   svc_desktopRuntime["ctx.desktopRuntime<br/>Desktop runtime facts"]
   pkg_connection_ipc["connection-ipc"]
   pkg_goal["goal"]
@@ -206,6 +209,7 @@ flowchart LR
   pkg_agent_presets --> svc_agentPresets
   pkg_api_gateway --> svc_typertGateway
   pkg_apiproxy --> svc_apiProxy
+  pkg_apiproxy --> svc_nativePathRuntime
   pkg_approval --> svc_approval
   pkg_attachment --> svc_attachments
   pkg_attachment_local --> svc_attachments
@@ -225,6 +229,8 @@ flowchart LR
   pkg_desktop_app --> svc_desktopRuntime
   pkg_directory_picker --> svc_directoryPicker
   pkg_directory_picker_browse --> svc_directoryPicker
+  pkg_directory_picker_electron --> svc_directoryPicker
+  pkg_directory_picker_electron --> svc_electronDirectoryPickerRuntime
   pkg_directory_picker_native --> svc_directoryPicker
   pkg_e2b --> svc_e2b
   pkg_fs --> svc_fs
@@ -326,6 +332,7 @@ flowchart LR
   svc_dynamicCordisRunner --> pkg_tool_cordis
   svc_e2b --> pkg_fs_e2b
   svc_e2b --> pkg_subprocess_e2b
+  svc_electronDirectoryPickerRuntime --> pkg_directory_picker_electron
   svc_fs --> pkg_tool_fs
   svc_invariants --> pkg_agent
   svc_invariants --> pkg_agent_loop
@@ -338,6 +345,7 @@ flowchart LR
   svc_llm --> pkg_agent_loop
   svc_llm --> pkg_compaction_basic
   svc_lsp --> pkg_tool_lsp
+  svc_nativePathRuntime --> pkg_apiproxy
   svc_sandbox --> pkg_bash_sandbox
   svc_sandbox --> pkg_terminal_bash
   svc_sandboxPolicy --> pkg_bash_sandbox
@@ -453,6 +461,8 @@ flowchart LR
 | `ctx.agentDefaultModel` | `core` | [`agent-default-model`](../packages/core/agent-default-model) | - | [`headless`](../packages/bundle/headless), [`host-apiproxy`](../packages/host/apiproxy) | - | 通过 settings 分层默认 `ModelSelection`，让直接入口与 Host 支撑的 Agent 入口共享同一个状态所有者。 |
 | `ctx.agentLoop` | `bundle` | [`agent-loop`](../packages/core/agent-loop) | - | [`agent-spine-demo`](../packages/examples/agent-spine-demo) | - | 唯一的具体循环插件；扩展包依赖 dsh-agent 的事件和服务，而不依赖此包。 |
 | `ctx.desktopApp` | `bundle` | [`desktop-app`](../packages/bundle/desktop-app) | - | [`desktop-app`](../packages/bundle/desktop-app) | - | 应用在 boot 时提供构建后的 renderer dist 根目录；desktop-app bundle 将其重发布为 desktopRuntime 供载体行消费。 |
+| `ctx.electronDirectoryPickerRuntime` | `core` | `directory-picker-electron` | - | `directory-picker-electron` | - | 应用自有的 Electron 对话框交接；provider 在共享目录选择器接缝之后注册原生选择交互。 |
+| `ctx.nativePathRuntime` | `core` | `apiproxy` | - | `apiproxy` | - | 应用自有的 openPath/openTextFile 桌面交接；桌面壳之外缺失时使用 shell 命令默认实现。 |
 | `ctx.desktopRuntime` | `bundle` | [`desktop-app`](../packages/bundle/desktop-app) | - | `connection-ipc` | - | 为协议载体重发布应用自有的 dist 根目录，并拥有 desktop-surface 提示节。 |
 | `ctx.goals` | `core` | [`goal`](../packages/goal/goal) | - | - | - | 从会话日志折叠带修订版本的目标状态，并将实时延续激活保留在进程本地。 |
 | `ctx.e2b` | `core` | [`e2b`](../packages/e2b/e2b) | - | [`fs-e2b`](../packages/e2b/fs-e2b), [`subprocess-e2b`](../packages/e2b/subprocess-e2b) | - | 拥有一个共享的 E2B SDK 句柄、远程工作目录和最终沙箱处置，使两个基础 E2B 提供方处于同一个 Linux 运行时中。 |

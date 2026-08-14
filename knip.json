@@ -162,6 +162,9 @@
     "packages/bundle/desktop-app": {
       "project": [
         "src/**/*.ts"
+      ],
+      "ignoreDependencies": [
+        "@deepseek-ai/.+"
       ]
     },
     "packages/bundle/headless": {

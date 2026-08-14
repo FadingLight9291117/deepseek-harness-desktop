@@ -2,7 +2,7 @@
 
 [English](desktop.md) | 中文
 
-Electron 桌面壳（`apps/desktop`，`@deepseek-ai/dsh-desktop`）：一个窗口，通过零端口 `dsh://` 协议载体运行线上 web UI，与 CLI 共享 profile 与 harness home。应用启动 `desktop` profile（base + web-app + desktop-app 三层 bundle，见 [`dsh-desktop-app`](../../packages/bundle/desktop-app/README.md)）；desktop-app 层禁用 HTTP 传输行，[`dsh-client-connection-ipc`](../../packages/client/connection-ipc/README.md) 载体从单一协议 authority 服务整个客户端——注入 boot 清单的 index、插件 bundle、vite 资源与 `/api`（进程内 `toFetchHandler` 网关）。无界事件流经沙箱 preload 桥走 IPC 推送通道，因为 Electron 会缓冲协议响应。打开路径操作与目录选择使用能力服务之后的普通宿主提供方。技术栈选择记录在 [desktop shell Agent Note](../../.agents/notes/implemented/architecture/2026-08-14-desktop-shell-tech-selection.md) 中。
+Electron 桌面壳（`apps/desktop`，`@deepseek-ai/dsh-desktop`）：一个窗口，通过零端口 `dsh://` 协议载体运行线上 web UI，与 CLI 共享 profile 与 harness home。应用启动 `desktop` profile（base + web-app + desktop-app 三层 bundle，见 [`dsh-desktop-app`](../../packages/bundle/desktop-app/README.md)）；desktop-app 层禁用 HTTP 传输行，[`dsh-client-connection-ipc`](../../packages/client/connection-ipc/README.md) 载体从单一协议 authority 服务整个客户端——注入 boot 清单的 index、插件 bundle、vite 资源与 `/api`（进程内 `toFetchHandler` 网关）。无界事件流经沙箱 preload 桥走 IPC 推送通道，因为 Electron 会缓冲协议响应。打开路径操作与目录选择使用能力服务之后的现有原生宿主提供方；Electron 专用提供方可以在不修改消费方的情况下替换它们。技术栈选择记录在 [desktop shell Agent Note](../../.agents/notes/implemented/architecture/2026-08-14-desktop-shell-tech-selection.md) 中。
 
 ## Services
 
@@ -35,4 +35,51 @@ Source: [`packages/bundle/desktop-app/src/index.ts:31`](../../packages/bundle/de
 Runtime values the desktop carrier and surface rows consume.
 
 Source: [`packages/bundle/desktop-app/src/index.ts:37`](../../packages/bundle/desktop-app/src/index.ts)
+
+<a id="ctxelectrondirectorypickerruntime--electrondirectorypickerruntime"></a>
+
+### `ctx.electronDirectoryPickerRuntime` — `ElectronDirectoryPickerRuntime`
+
+Application-owned Electron directory dialog available to the host tree.
+
+```ts cordis-catalog
+/**
+ * Open one Electron directory dialog.
+ * @param signal - caller/connection lifetime.
+ * @returns the selected absolute path unchanged, or null when cancelled.
+ */
+pickDirectory(signal: AbortSignal): Promise<string | null>
+```
+
+Source: [`packages/host/directory-picker-electron/src/index.ts:15`](../../packages/host/directory-picker-electron/src/index.ts)
+
+<a id="ctxnativepathruntime--nativepathruntime"></a>
+
+### `ctx.nativePathRuntime` — `NativePathRuntime`
+
+Native path operations supplied by an application-owned desktop runtime.
+
+```ts cordis-catalog
+/**
+ * Hand a filesystem path to the operating system's associated application.
+ * @param path - Host-resolved path; implementations must not reinterpret it.
+ * @param signal - Caller lifetime.
+ * @returns when the operating-system handoff has completed.
+ */
+openPath(path: string, signal: AbortSignal): Promise<void>
+
+/**
+ * Hand a text document to the desktop's associated editor.
+ * @param path - Host-resolved document path; implementations must not reinterpret it.
+ * @param signal - Caller lifetime.
+ * @returns when the operating-system handoff has completed.
+ */
+openTextFile(path: string, signal: AbortSignal): Promise<void>
+
+/** Reports the desktop-handoff capability this runtime provides.
+ * @returns whether this runtime can hand paths to a user-visible desktop. */
+canOpenPath(): boolean
+```
+
+Source: [`packages/host/apiproxy/src/index.ts:43`](../../packages/host/apiproxy/src/index.ts)
 <!-- END GENERATED cordis-surface -->

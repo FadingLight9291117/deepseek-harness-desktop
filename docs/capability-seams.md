@@ -109,6 +109,9 @@ flowchart LR
   pkg_agent_spine_demo["agent-spine-demo"]
   pkg_desktop_app["desktop-app"]
   svc_desktopApp["ctx.desktopApp<br/>Desktop assembly facts"]
+  pkg_directory_picker_electron["directory-picker-electron"]
+  svc_electronDirectoryPickerRuntime["ctx.electronDirectoryPickerRuntime<br/>Electron directory picker runtime"]
+  svc_nativePathRuntime["ctx.nativePathRuntime<br/>Native path handoff runtime"]
   svc_desktopRuntime["ctx.desktopRuntime<br/>Desktop runtime facts"]
   pkg_connection_ipc["connection-ipc"]
   pkg_goal["goal"]
@@ -204,6 +207,7 @@ flowchart LR
   pkg_agent_presets --> svc_agentPresets
   pkg_api_gateway --> svc_typertGateway
   pkg_apiproxy --> svc_apiProxy
+  pkg_apiproxy --> svc_nativePathRuntime
   pkg_approval --> svc_approval
   pkg_attachment --> svc_attachments
   pkg_attachment_local --> svc_attachments
@@ -223,6 +227,8 @@ flowchart LR
   pkg_desktop_app --> svc_desktopRuntime
   pkg_directory_picker --> svc_directoryPicker
   pkg_directory_picker_browse --> svc_directoryPicker
+  pkg_directory_picker_electron --> svc_directoryPicker
+  pkg_directory_picker_electron --> svc_electronDirectoryPickerRuntime
   pkg_directory_picker_native --> svc_directoryPicker
   pkg_e2b --> svc_e2b
   pkg_fs --> svc_fs
@@ -324,6 +330,7 @@ flowchart LR
   svc_dynamicCordisRunner --> pkg_tool_cordis
   svc_e2b --> pkg_fs_e2b
   svc_e2b --> pkg_subprocess_e2b
+  svc_electronDirectoryPickerRuntime --> pkg_directory_picker_electron
   svc_fs --> pkg_tool_fs
   svc_invariants --> pkg_agent
   svc_invariants --> pkg_agent_loop
@@ -336,6 +343,7 @@ flowchart LR
   svc_llm --> pkg_agent_loop
   svc_llm --> pkg_compaction_basic
   svc_lsp --> pkg_tool_lsp
+  svc_nativePathRuntime --> pkg_apiproxy
   svc_sandbox --> pkg_bash_sandbox
   svc_sandbox --> pkg_terminal_bash
   svc_sandboxPolicy --> pkg_bash_sandbox
@@ -451,6 +459,8 @@ flowchart LR
 | `ctx.agentDefaultModel` | `core` | [`agent-default-model`](../packages/core/agent-default-model) | - | [`headless`](../packages/bundle/headless), [`host-apiproxy`](../packages/host/apiproxy) | - | Layers the default ModelSelection through settings so direct and Host-backed Agent entry points share one state owner. |
 | `ctx.agentLoop` | `bundle` | [`agent-loop`](../packages/core/agent-loop) | - | [`agent-spine-demo`](../packages/examples/agent-spine-demo) | - | The one concrete loop plugin; extension packages depend on dsh-agent events and services, not on this package. |
 | `ctx.desktopApp` | `bundle` | [`desktop-app`](../packages/bundle/desktop-app) | - | [`desktop-app`](../packages/bundle/desktop-app) | - | The app provides the built renderer dist root at boot; the desktop-app bundle republishes it as desktopRuntime for the carrier rows. |
+| `ctx.electronDirectoryPickerRuntime` | `core` | `directory-picker-electron` | - | `directory-picker-electron` | - | The app-owned Electron dialog handoff; the provider registers the native picker interaction behind the shared directory-picker seam. |
+| `ctx.nativePathRuntime` | `core` | `apiproxy` | - | `apiproxy` | - | App-owned desktop handoff for openPath/openTextFile; absent outside a desktop shell, where the shell-command defaults apply. |
 | `ctx.desktopRuntime` | `bundle` | [`desktop-app`](../packages/bundle/desktop-app) | - | `connection-ipc` | - | Republishes the app-owned dist root for the protocol carrier and owns the desktop-surface prompt section. |
 | `ctx.goals` | `core` | [`goal`](../packages/goal/goal) | - | - | - | Folds revisioned objective state from the session log and keeps live continuation activation process-local. |
 | `ctx.e2b` | `core` | [`e2b`](../packages/e2b/e2b) | - | [`fs-e2b`](../packages/e2b/fs-e2b), [`subprocess-e2b`](../packages/e2b/subprocess-e2b) | - | Owns one shared E2B SDK handle, remote working directory, and final sandbox disposition so both fundamental E2B providers inhabit the same Linux runtime. |
@@ -469,7 +479,7 @@ flowchart LR
 | `ctx.jobs` | `seam` | [`jobs`](../packages/jobs/jobs) | [`jobs-local`](../packages/jobs/jobs-local) | [`tool-bash`](../packages/shell/tool-bash), [`tool-terminal`](../packages/terminal/tool-terminal), [`tool-subagent`](../packages/subagent/tool-subagent), [`tool-jobs`](../packages/jobs/tool-jobs) | - | Producers (background bash, PTY sends, and subagent delegations) register running work; tool-jobs is the model-facing controller that reads, lists, and kills it; jobs-local is the process-local registry. |
 | `ctx.web` | `seam` | [`web`](../packages/web/web) | [`web-search-exa`](../packages/web/web-search-exa), [`web-search-perplexity`](../packages/web/web-search-perplexity), [`web-search-deepseek`](../packages/web/web-search-deepseek), [`web-fetch-http`](../packages/web/web-fetch-http) | [`tool-web`](../packages/web/tool-web) | - | Search and fetch providers register into one ctx.web seam; tool-web owns the stable model-facing names. |
 | `ctx.spillStore` | `seam` | [`spill`](../packages/spill/spill) | [`spill-local`](../packages/spill/spill-local) | [`spill-policy`](../packages/spill/spill-policy) | - | The backend saves oversized tool text and returns a model-facing locator plus retrieval hint; spill-policy is the tools/post-execute consumer that decides when to spill. |
-| `ctx.directoryPicker` | `seam` | `directory-picker` | `directory-picker-native`, `directory-picker-browse` | `apiproxy` | - | Discriminated interaction capability: the native backend opens one OS chooser on the host display, the browse backend serves listing/creation primitives for the in-app browser; dual-face backends fill ui-workspace directory-flow slots from their browser halves (no wire advertisement). |
+| `ctx.directoryPicker` | `seam` | `directory-picker` | `directory-picker-native`, `directory-picker-electron`, `directory-picker-browse` | `apiproxy` | - | Discriminated interaction capability: native and Electron backends open one OS chooser on the host display, while the browse backend serves listing/creation primitives for the in-app browser; the client-side native flow remains transport-independent (no wire advertisement). |
 | `ctx.webServer` | `core` | `webserver` | - | `connection`, `modules`, `hmr` | - | Plain node:http carrier: named-route registry, index transform taps, and the static dist fallback; web-transport plugins register their own routes. |
 | `ctx.clientModules` | `core` | `modules` | - | `hmr` | - | Composes the __DSH_BOOT__ entry graph from an incremental dsh.client scan, serves plugin bundles, and notifies rebuilt/graph-changed subscribers. |
 | `ctx.workflowEngine` | `seam` | [`workflow`](../packages/workflow/workflow) | [`workflow-worker-thread`](../packages/workflow/workflow-worker-thread) | [`tool-workflow`](../packages/workflow/tool-workflow), [`tool-ralph`](../packages/workflow/tool-ralph) | - | One engine per context, as in bash, with no named-provider registry; the general workflow and fixed Ralph consumers start runs whose agent() calls fan out through ctx.subagents. |

@@ -4,6 +4,7 @@
 
 dsh 完整 Web UI 的 Electron 桌面壳。main 进程从 CLI 共用的 `DSH_HOME` 与 profile 层启动 `desktop` profile，桌面 bundle 则移除 HTTP 服务器与浏览器传输行。renderer 通过本地 `dsh://app` 协议加载；unary API 调用使用该协议，实时 host/session 流经沙箱 preload 桥以 IPC 推送通道传递。应用不打开 HTTP 端口（见[桌面壳决策](../../.agents/notes/implemented/architecture/2026-08-14-desktop-shell-tech-selection.md)与 [GUI 分层笔记](../../.agents/notes/implemented/architecture/2026-07-19-gui-layering-and-rpc-protocol.md)）。
 
+main 进程还通过 Electron 的跨平台 `shell.openPath` 与 `dialog.showOpenDialog` API 提供原生路径打开和目录选择。Cordis 接收与平台无关的闭包，所选路径保持原样传递，因此同一套集成无需在 provider 内设置平台分支，即可接受 macOS 路径、Windows 驱动器路径与 UNC 路径。
 
 ## 构建与运行
 
@@ -22,5 +23,6 @@ node apps/desktop/lib/index.js --headless-boot --patch ./local.patch.yml
 
 - profile 补丁热重载不可用（HMR 服务需要只有 `--expose-internals` 能暴露的 loader internals）；重启应用以应用 profile 编辑。
 - 事件流走 IPC 推送通道，因为 Electron 会缓冲协议响应、无法通过 `dsh://` 承载无界 SSE body；终止与重连行为见[载体 README](../../packages/client/connection-ipc/README.md)。
-- v1 发行与 GUI CI 仅支持 macOS。
+- v1 发行与 GUI CI 仅支持 macOS；原生适配器本身使用跨平台 Electron API，并保持 Windows 路径不变。
+- Electron 无法在调用方中止时以编程方式关闭已显示的目录面板；请求会结算并丢弃最终选择，而面板会保留到用户关闭或父窗口关闭。
 - 无托盘、系统通知、自动更新与安装器（v1 范围）。

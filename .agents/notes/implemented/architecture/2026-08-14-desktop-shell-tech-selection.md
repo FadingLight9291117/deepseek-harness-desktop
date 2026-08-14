@@ -24,6 +24,7 @@ The renderer is sandboxed with context isolation. The preload exposes only the s
 - Electron adds a deliberately allowed binary download but no new implementation language or release toolchain. Contributor and CI environments may need an Electron mirror.
 - Chromium adds roughly 100 MB or more to the installed application and Chromium-class resident memory. Tauri's system WebView would be materially smaller.
 - Signed distribution still requires Developer ID signing and notarization. Installers and auto-update remain outside the initial application scope.
+- The desktop main process provides cross-platform `shell.openPath` and `dialog.showOpenDialog` closures. `dsh-host-directory-picker-electron` adapts the latter to the existing native interaction, while the gateway consumes the former through its optional native runtime; API consumers and the renderer remain unchanged. Paths pass through without macOS/Windows parsing, so Windows enablement does not require a second native-capability design.
 
 This decision should be reconsidered if the product acquires a hard sub-30 MB binary limit, must use the system WebView, or standardizes on a Rust application host. Any of those requirements changes a criterion that currently favors Electron strongly enough to justify the sidecar and second-engine costs.
 

@@ -24,6 +24,7 @@ renderer 启用 sandbox 与 context isolation。preload 只暴露 IPC 载体所�
 - Electron 增加一项明确放行的二进制下载，但不增加实现语言或发布工具链。贡献者与 CI 环境可能需要 Electron mirror。
 - Chromium 使安装体积增加约 100 MB 或更多，并带来 Chromium 级常驻内存。Tauri 的系统 WebView 会显著更小。
 - 签名分发仍需要 Developer ID 签名与公证。安装器和自动更新不在初始应用范围内。
+- Desktop main process 提供跨平台 `shell.openPath` 与 `dialog.showOpenDialog` 闭包。`dsh-host-directory-picker-electron` 把后者适配到现有原生交互，网关则通过可选原生 runtime 消费前者；API 消费方与 renderer 保持不变。路径传递不进行 macOS／Windows 解析，因此启用 Windows 不需要第二套原生能力设计。
 
 如果产品出现低于 30 MB 的硬性体积限制、必须使用系统 WebView，或将 Rust 应用宿主定为标准，应重新评估该决策。这些要求会改变目前明显有利于 Electron 的标准，足以重新权衡 sidecar 与第二渲染引擎的成本。
 

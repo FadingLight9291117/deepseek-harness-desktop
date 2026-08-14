@@ -68,6 +68,8 @@ export const SERVICE_PAGE: Record<string, string> = {
   directoryPicker: 'workspace.md',
   desktopApp: 'desktop.md',
   desktopRuntime: 'desktop.md',
+  electronDirectoryPickerRuntime: 'desktop.md',
+  nativePathRuntime: 'desktop.md',
   dynamicCordisRunner: 'extensions.md',
   e2b: 'subprocess.md',
   fs: 'filesystem.md',

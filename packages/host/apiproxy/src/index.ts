@@ -34,7 +34,30 @@ declare module '@deepseek-ai/cordis' {
   interface Context {
     /** The host-side ApiProxy implementation (the transport-agnostic gateway face). */
     apiProxy: ApiProxy
+    /** App-owned native path handoff, when the host runs inside a desktop shell. */
+    nativePathRuntime: NativePathRuntime
   }
+}
+
+/** Native path operations supplied by an application-owned desktop runtime. */
+export interface NativePathRuntime {
+  /**
+   * Hand a filesystem path to the operating system's associated application.
+   * @param path - Host-resolved path; implementations must not reinterpret it.
+   * @param signal - Caller lifetime.
+   * @returns when the operating-system handoff has completed.
+   */
+  openPath(path: string, signal: AbortSignal): Promise<void>
+  /**
+   * Hand a text document to the desktop's associated editor.
+   * @param path - Host-resolved document path; implementations must not reinterpret it.
+   * @param signal - Caller lifetime.
+   * @returns when the operating-system handoff has completed.
+   */
+  openTextFile(path: string, signal: AbortSignal): Promise<void>
+  /** Reports the desktop-handoff capability this runtime provides.
+   * @returns whether this runtime can hand paths to a user-visible desktop. */
+  canOpenPath(): boolean
 }
 
 /** Gateway plugin configuration. */
@@ -95,10 +118,16 @@ export class ApiProxyService extends Service implements ApiProxy {
 
   constructor(ctx: Context, config: Config) {
     super(ctx, 'apiProxy')
+    const nativePathRuntime = ctx.get('nativePathRuntime')
     const api = createApiProxy(ctx, {
       defaultModelSelection: () => ctx.agentDefaultModel.currentSelection(),
       saveDefaultModelSelection: selection => ctx.agentDefaultModel.saveSelection(selection),
       cwd: process.cwd(),
+      ...(nativePathRuntime === undefined ? {} : {
+        openPath: nativePathRuntime.openPath,
+        openTextFile: nativePathRuntime.openTextFile,
+        canOpenPath: nativePathRuntime.canOpenPath,
+      }),
       ...config.nativeOpen === undefined ? {} : { canOpenPath: () => config.nativeOpen as boolean },
       ...(config.sessionExportCompressionLevel === undefined
         ? {}

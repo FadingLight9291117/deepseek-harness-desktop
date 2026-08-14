@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-dsh 桌面表层 bundle。[`cordis.patch.yml`](cordis.patch.yml) 叠加在 [`dsh-web-app`](../web-app/README.md) 之上：禁用 HTTP 传输行（`webserver`、`web-runtime`、`client-hmr`、`connection`），并插入桌面胶水——本包的 `desktop-runtime` 插件、[`dsh-client-connection-ipc`](../../client/connection-ipc/README.md) 协议载体与固定的 [`-native` 目录后端](../../host/directory-picker-native/README.md)（其双面浏览器半部注册客户端流程）。插件把应用的装配事实（构建后的 renderer dist 根目录，由应用以 `ctx.desktopApp` 提供）重发布为 `desktopRuntime` 服务供载体消费，并注册 harness-source 与 desktop-surface 提示节。没有 URL 行、没有端口：整个客户端面对 `dsh://app` 协议 authority。
+dsh 桌面表层 bundle。[`cordis.patch.yml`](cordis.patch.yml) 叠加在 [`dsh-web-app`](../web-app/README.md) 之上：禁用 HTTP 传输行（`webserver`、`web-runtime`、`client-hmr`、`connection`），并插入桌面胶水——本包的 `desktop-runtime` 插件、[`dsh-client-connection-ipc`](../../client/connection-ipc/README.md) 协议载体、[Electron 目录 provider](../../host/directory-picker-electron/README.md)及其与传输无关的原生客户端流程。插件把应用的装配事实（构建后的 renderer dist 根目录，由应用以 `ctx.desktopApp` 提供）重发布为 `desktopRuntime` 服务供载体消费，并注册 harness-source 与 desktop-surface 提示节。没有 URL 行、没有端口：整个客户端面对 `dsh://app` 协议 authority。
 
 ## Model Experience
 

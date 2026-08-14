@@ -9,6 +9,7 @@
     "src/main/args.ts",
     "src/main/host-boot.ts",
     "src/main/index.ts",
+    "src/main/native.ts",
     "src/main/process-shutdown.ts"
   ],
   "references": [
@@ -41,6 +42,9 @@
     },
     {
       "path": "../../packages/host/apiproxy"
+    },
+    {
+      "path": "../../packages/host/directory-picker-electron"
     }
   ]
 }
