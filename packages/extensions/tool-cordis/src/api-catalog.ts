@@ -526,6 +526,30 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'desktopApp',
+    summary: 'Assembly facts the app owns: where the built renderer lives.',
+    description: 'Assembly facts the app owns: where the built renderer lives.',
+    methods: [
+      {
+        signature: 'distRoot: string',
+        description: 'Absolute directory containing the vite-built renderer (dist/).',
+        parameters: [],
+      },
+    ],
+  },
+  {
+    key: 'desktopRuntime',
+    summary: 'Runtime values the desktop carrier and surface rows consume.',
+    description: 'Runtime values the desktop carrier and surface rows consume.',
+    methods: [
+      {
+        signature: 'distRoot: string',
+        description: 'Absolute directory containing the vite-built renderer (dist/).',
+        parameters: [],
+      },
+    ],
+  },
+  {
     key: 'directoryPicker',
     summary: 'Abstract directory-picking service.',
     description: 'Abstract directory-picking service. Subclass, implement `capability()`, and load the subclass as a plugin — it registers as `ctx.directoryPicker` (one implementation per context; loading a second throws, cordis\' standard duplicate-service behavior). The capability object must be stable for the service lifetime: consumers may capture it across calls.',

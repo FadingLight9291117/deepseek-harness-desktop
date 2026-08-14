@@ -1,4 +1,15 @@
-import type { HostDescription, IApiClient, HostFrame, MuxFrame, RpcRequest } from './api.ts'
+/**
+ * Transport-agnostic connection controller: opens both downstream streams
+ * through an {@link IApiClient}, runs the readiness handshake, pumps frames to
+ * business sinks, and reconnects with exponential backoff on loss. The
+ * physical transport (WebSocket, in-process SSE, desktop protocol) lives in
+ * the api subclass; this loop is identical for every carrier.
+ */
+import type { HostFrame, MuxFrame, ResponseValue, RpcRequest } from '@deepseek-ai/dsh-host-apiproxy/api'
+import type { IApiClient } from '@deepseek-ai/dsh-host-apiproxy/client'
+
+/** Host facts published by each completed handshake (`host.describe`'s value). */
+export type HostDescription = ResponseValue<'host.describe'>
 
 /** Reconnect/backoff tunables (deployment-varying — no hardcoded tunables; these become the
  *  future `ctx.connection` plugin's Config). All fields optional; defaults below. */

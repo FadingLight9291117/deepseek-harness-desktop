@@ -40,6 +40,9 @@ peerDependencyRules:
 allowBuilds:
   esbuild: true
   lefthook: true
+  # Electron's postinstall downloads the per-platform binary. Deliberate entry:
+  # the desktop shell (apps/desktop) is the only consumer.
+  electron: true
   # Cross-platform boundary for the persistent PTY backend, including ConPTY on Windows.
   node-pty: true
   # Pulled in by @earendil-works/pi-ai (optional LLM API backend). pnpm lists

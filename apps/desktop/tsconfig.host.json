@@ -1,0 +1,46 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/types",
+    "tsBuildInfoFile": "lib/tsconfig.host.tsbuildinfo"
+  },
+  "files": [
+    "src/main/args.ts",
+    "src/main/host-boot.ts",
+    "src/main/index.ts",
+    "src/main/process-shutdown.ts"
+  ],
+  "references": [
+    {
+      "path": "../../vendor/cordis"
+    },
+    {
+      "path": "../../vendor/loader"
+    },
+    {
+      "path": "../../vendor/include"
+    },
+    {
+      "path": "../../packages/boot/app-boot"
+    },
+    {
+      "path": "../../packages/boot/cmdline"
+    },
+    {
+      "path": "../../packages/util/launch-environment"
+    },
+    {
+      "path": "../../packages/util/home-paths"
+    },
+    {
+      "path": "../../packages/bundle/desktop-app"
+    },
+    {
+      "path": "../../packages/client/connection-ipc/tsconfig.host.json"
+    },
+    {
+      "path": "../../packages/host/apiproxy"
+    }
+  ]
+}

@@ -1,16 +1,24 @@
 /**
  * Browser wire client. The plugin selects fixture or HTTP transport, provides
  * the shared API client, and lets the runtime object layer start the stream
- * controller with its sinks.
+ * controller with its sinks. The controller, RPC caller, and handle contract
+ * are the shared transport-agnostic core; this plugin owns only the browser
+ * transport choice and the loopback posture.
  */
 import type { Context } from '@deepseek-ai/cordis'
+import {
+  ConnectionController,
+  createConnectionRpc,
+  createHostDescriptionSource,
+  type ClientConnectionRpc,
+  type ConnectionConfig,
+  type ConnectionSinks,
+  type ConnectionState,
+} from '@deepseek-ai/dsh-client-connection-core'
 import type { HostDescription, IApiClient } from './api.ts'
-import { ConnectionController, type ConnectionConfig, type ConnectionSinks, type ConnectionState } from './connection.ts'
 import { FixtureApiClient } from './fixture.ts'
 import { WebApiClient } from './web-api-client.ts'
-import { createWebConnectionRpc } from './rpc.ts'
 import { isLoopbackHostname } from '../loopback-hostname.ts'
-import type { ClientConnectionRpc } from '../rpc.ts'
 
 // ---- Contract re-exports (browser-safe apiproxy channels + core types) ----
 export type {
@@ -39,7 +47,7 @@ export {
 // Connection loop types are public through ConnectionHandle.start; the
 // controller remains package-internal.
 export type { ConnectionConfig, ConnectionSinks, ConnectionState }
-export type { ClientConnectionRpc } from '../rpc.ts'
+export type { ClientConnectionRpc } from '@deepseek-ai/dsh-client-connection-core'
 
 /** Observable Host description published by each completed connection handshake. */
 export interface HostDescriptionSource {
@@ -86,31 +94,13 @@ export function apply(ctx: Context): void {
   const fixture = pageLocation !== undefined && new URLSearchParams(pageLocation.search).has('fixture')
   const fixtureClient = fixture ? new FixtureApiClient() : undefined
   const api: IApiClient = fixtureClient ?? new WebApiClient()
-  const rpc = fixtureClient?.rpc ?? createWebConnectionRpc()
+  const rpc: ClientConnectionRpc = fixtureClient?.rpc ?? createConnectionRpc()
+  const { source: hostDescription, publish } = createHostDescriptionSource()
   let started = false
-  let description: HostDescription | undefined
-  const descriptionListeners = new Set<() => void>()
-  const publishDescription = (next: HostDescription | undefined): void => {
-    if (Object.is(description, next)) return
-    description = next
-    for (const listener of [...descriptionListeners]) {
-      try {
-        listener()
-      } catch (error) {
-        console.error('[web-runtime] host-description listener threw:', error)
-      }
-    }
-  }
   const handle: ConnectionHandle = {
     api,
     isLoopback: pageLocation === undefined || isLoopbackHostname(pageLocation.hostname),
-    hostDescription: {
-      getSnapshot: () => description,
-      subscribe: (listener) => {
-        descriptionListeners.add(listener)
-        return () => { descriptionListeners.delete(listener) }
-      },
-    },
+    hostDescription,
     rpc,
     start(sinks, config) {
       if (started) throw new Error('connection: the stream loop is already owned by another consumer')
@@ -118,16 +108,16 @@ export function apply(ctx: Context): void {
       const controller = new ConnectionController(api, {
         ...sinks,
         onConnected: (next) => {
-          publishDescription(next)
+          publish(next)
           // A description subscriber may synchronously stop the loop. In that
           // case publishDescription(undefined) has already retracted this
           // generation, so do not leak its stale connected notification to
           // the consumer sink afterward.
-          if (!Object.is(description, next)) return
+          if (!Object.is(hostDescription.getSnapshot(), next)) return
           sinks.onConnected?.(next)
         },
         onStateChange: (state) => {
-          if (state === 'reconnecting') publishDescription(undefined)
+          if (state === 'reconnecting') publish(undefined)
           sinks.onStateChange?.(state)
         },
       }, config ?? {})
@@ -135,7 +125,7 @@ export function apply(ctx: Context): void {
       return {
         stop: () => {
           controller.stop()
-          publishDescription(undefined)
+          publish(undefined)
         },
       }
     },

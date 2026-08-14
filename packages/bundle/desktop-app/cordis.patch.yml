@@ -1,0 +1,59 @@
+# The dsh-desktop-app bundle patch: the desktop surface over the dsh-web-app
+# layer. Applied after dsh-web-app's insert; rows here override earlier rows
+# by id, with the profile's own cordis.patch.yml and any --patch overlays
+# still to come.
+#
+# The desktop carrier replaces the HTTP transport with the dsh:// app
+# protocol (the connection-ipc row below), so the browser transport rows are
+# disabled rather than deleted: the web-app bundle is shared, and a row
+# absent from a surface overlay would silently reappear the day someone
+# reorders the composition.
+
+# ── layer 2 transport: replaced by the protocol carrier ────────────────────
+
+- id: webserver
+  disabled: true
+
+# Web glue owned by dsh-web-app: frontend dist serving (replaced by the
+# protocol's dist route), the web-surface prompt and bash variable (replaced
+# by the desktop-surface section below), and the URL line (no port to print).
+- id: web-runtime
+  disabled: true
+
+# The client-plugin reload chain rides webserver routes; without a server the
+# node half has no routes to register. The desktop window has no shared-HMR
+# lifecycle (restart to apply patches), so the row is disabled outright.
+- id: client-hmr
+  disabled: true
+
+# The browser wire client (HTTP up / WebSocket down) is replaced by the
+# protocol carrier: node half registers the dsh:// protocol, browser half is
+# the fetch/SSE client over it.
+- id: connection
+  disabled: true
+
+# ── desktop-only host rows ──────────────────────────────────────────────────
+
+# The adaptive picker probes the webserver to choose its interaction; without
+# one, pin the native backend as a sibling row (the same directoryPicker
+# service key, so consumers resolve unchanged). The Electron dialog provider
+# replaces this row in P3.
+- id: directory-picker
+  disabled: true
+
+- insert:
+    - id: directory-picker-native
+      name: '@deepseek-ai/dsh-host-directory-picker-native'
+
+    # Desktop glue: the desktopRuntime service (dist root, provided from the
+    # app's assembly facts) and the desktop-surface prompt section.
+    - id: desktop-runtime
+      name: '@deepseek-ai/dsh-desktop-app'
+
+    # The transport carrier: node half = dsh:// protocol handler over the
+    # in-process toFetchHandler; browser half = the ElectronApiClient plugin
+    # that provides ctx.connection. Dual-face like the connection row it
+    # replaces, so the modules scan picks up its dsh.client declaration
+    # unchanged.
+    - id: connection-ipc
+      name: '@deepseek-ai/dsh-client-connection-ipc'

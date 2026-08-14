@@ -54,7 +54,9 @@
     { "path": "./packages/client/web-react" },
     { "path": "./packages/client/modules" },
     { "path": "./packages/client/hmr" },
+    { "path": "./packages/client/connection-core" },
     { "path": "./packages/client/connection/tsconfig.client.json" },
+    { "path": "./packages/client/connection-ipc/tsconfig.client.json" },
     { "path": "./packages/typert/registry" },
     { "path": "./packages/api/gateway/tsconfig.client.json" },
     { "path": "./packages/api/remotes/tsconfig.client.json" },
@@ -93,6 +95,7 @@
     { "path": "./packages/client/ui-settings-plugin-inventory" },
     { "path": "./packages/client/locale" },
     { "path": "./packages/client/web" },
-    { "path": "./apps/web" }
+    { "path": "./apps/web" },
+    { "path": "./apps/desktop/tsconfig.client.json" }
   ]
 }

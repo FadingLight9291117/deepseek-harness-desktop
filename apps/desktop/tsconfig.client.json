@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.client.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/types",
+    "tsBuildInfoFile": "lib/tsconfig.client.tsbuildinfo"
+  },
+  "files": [
+    "src/renderer/main.ts",
+    "src/renderer/node-module-stub.ts"
+  ],
+  "references": [
+    {
+      "path": "../../packages/client/web"
+    },
+    {
+      "path": "../../packages/client/modules"
+    }
+  ]
+}

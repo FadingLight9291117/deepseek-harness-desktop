@@ -644,6 +644,38 @@ jobs:
           DSH_SNAPSHOT_MAX_CONCURRENCY: '1'
         run: pnpm run check:ci
 
+  # Real Electron window coverage stays separate from the generic Ubuntu e2e
+  # lane, which has no display server. Electron's main-process APIs are shared
+  # by the macOS and future Windows desktop builds; this first blocking GUI
+  # lane proves the shipped macOS scope and the zero-port carrier.
+  desktop-macos:
+    if: github.event_name == 'pull_request'
+    name: desktop / macos
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.PRIMARY_NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install (immutable)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build desktop application and profile dependencies
+        run: pnpm run build
+
+      - name: Run Electron desktop lane
+        run: pnpm run test:desktop
+
   # Hot-standby drill for the in-house self-hosted Windows pool: every master
   # move re-runs the complete unsharded Windows gate inventory on the persistent
   # VM, continuously proving that environment can take over the required
@@ -925,7 +957,7 @@ jobs:
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
           || 'ubuntu-latest' }}
-    needs: [node-24, node-24-coverage, node-24-consumers, node-compat, python-sdk, python-runtime, windows]
+    needs: [node-24, node-24-coverage, node-24-consumers, node-compat, python-sdk, python-runtime, windows, desktop-macos]
     if: always() && github.event_name == 'pull_request'
     steps:
       - name: Fail if any needed job did not succeed

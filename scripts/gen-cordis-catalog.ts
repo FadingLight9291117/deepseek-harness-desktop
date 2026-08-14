@@ -66,6 +66,8 @@ export const SERVICE_PAGE: Record<string, string> = {
   cordisInspect: 'extensions.md',
   credentials: 'credentials.md',
   directoryPicker: 'workspace.md',
+  desktopApp: 'desktop.md',
+  desktopRuntime: 'desktop.md',
   dynamicCordisRunner: 'extensions.md',
   e2b: 'subprocess.md',
   fs: 'filesystem.md',

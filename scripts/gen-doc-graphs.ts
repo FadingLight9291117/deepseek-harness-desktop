@@ -348,6 +348,22 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'The one concrete loop plugin; extension packages depend on dsh-agent events and services, not on this package.',
   },
   {
+    key: 'desktopApp',
+    pkg: 'desktop-app',
+    title: 'Desktop assembly facts',
+    mode: 'bundle',
+    consumers: ['desktop-app'],
+    note: 'The app provides the built renderer dist root at boot; the desktop-app bundle republishes it as desktopRuntime for the carrier rows.',
+  },
+  {
+    key: 'desktopRuntime',
+    pkg: 'desktop-app',
+    title: 'Desktop runtime facts',
+    mode: 'bundle',
+    consumers: ['connection-ipc'],
+    note: 'Republishes the app-owned dist root for the protocol carrier and owns the desktop-surface prompt section.',
+  },
+  {
     key: 'goals',
     pkg: 'goal',
     title: 'Same-session goal domain',

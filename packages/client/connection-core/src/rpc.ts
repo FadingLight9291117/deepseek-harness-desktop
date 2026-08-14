@@ -1,22 +1,40 @@
-/** Browser caller for generic Connection unary RPC channels. */
-
-import {
-  RpcId,
-  serverResponseSchema,
-  type ClientRequest,
-} from '@deepseek-ai/dsh-host-apiproxy/api'
-import type { ClientConnectionRpc } from '../rpc.ts'
+/**
+ * Generic unary RPC over the page fetch carrier: caller for logical channels
+ * carried by the current transport. Shared by every client transport whose
+ * unary path rides `globalThis.fetch` against the page origin (browser HTTP
+ * and the desktop protocol alike).
+ */
+import type { RpcResult } from '@deepseek-ai/dsh-host-apiproxy/api'
+import { RpcId, serverResponseSchema, type ClientRequest } from '@deepseek-ai/dsh-host-apiproxy/api'
 import { randomUuid } from './random-uuid.ts'
+
+/** Client caller for logical RPC channels carried by the current transport. */
+export interface ClientConnectionRpc {
+  /**
+   * Call one endpoint through an already registered logical channel.
+   * @param channel - absolute logical channel such as `/api`.
+   * @param endpoint - channel-relative endpoint such as `goals/create`.
+   * @param payload - channel-owned request payload.
+   * @param signal - optional caller cancellation.
+   * @returns the existing RPC success/error result; correlation stays inside Connection.
+   */
+  call(
+    channel: string,
+    endpoint: string,
+    payload: unknown,
+    signal?: AbortSignal,
+  ): Promise<RpcResult<unknown>>
+}
 
 const INTERNAL_BASE = 'http://dsh.internal'
 const CHANNEL_PATTERN = /^\/[A-Za-z0-9._~-]+$/
 const ENDPOINT_SEGMENT_PATTERN = /^[A-Za-z0-9_$.-]+$/
 
 /**
- * Create the browser-backed generic RPC caller.
+ * Create the fetch-backed generic RPC caller.
  * @returns caller that owns request correlation and response-envelope validation.
  */
-export function createWebConnectionRpc(): ClientConnectionRpc {
+export function createConnectionRpc(): ClientConnectionRpc {
   return {
     async call(channel, endpoint, payload, signal) {
       assertTarget(channel, endpoint)

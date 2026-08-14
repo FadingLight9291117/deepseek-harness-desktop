@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <!-- The boot manifest is an inline script (script-src 'unsafe-inline');
+         the client stack evaluates bundled module code as strings
+         ('unsafe-eval' — the browser surface ships no CSP, so the stack was
+         never hardened against it; all code here is the app's own protocol
+         origin, so eval grants no attacker surface). -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; worker-src 'self' blob:"
+    />
+    <title>DeepSeek Harness</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/renderer/main.ts"></script>
+  </body>
+</html>

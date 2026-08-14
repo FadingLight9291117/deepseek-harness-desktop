@@ -10,6 +10,8 @@ Resolution branch order (`import(specifier)`): platform seed word → shell inst
 
 The Node half scans enabled Loader entries for web `dsh.client` packages, resolves each `exports["./client"]`, hashes the built bundle into the boot graph, and serves it with its source map under `/plugins`. Source launch maps host imports to TypeScript source but still consumes this built client export; missing files share one build instruction followed by a package/path list, while unrelated filesystem errors remain separate failures.
 
+The `/plugins` routes and boot-manifest tap follow the optional `webServer` service lifecycle. They register when a server becomes available, dispose with that generation, and bind again after a profile reload replaces the server; the module registry itself remains available while no server is mounted.
+
 ## Model Experience
 
 None, as the module loader is browser-side kernel machinery; nothing here reaches a model request.

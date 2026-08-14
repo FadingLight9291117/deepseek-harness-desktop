@@ -2,10 +2,12 @@
 // data source on a real clock; behavior tests need per-case responses and
 // deferred-controlled timing). Streams are hand pumps: pushMux/pushHost.
 import type {
-  HostFrame, IApiClient, ModelSelection, MuxFrame,
-  RpcRequest, RpcResponse, SessionId, SessionModels, SessionSearchItem, SkillEntry, WorkspaceId,
-} from '../src/client/api.ts'
-import { RpcId } from '../src/client/api.ts'
+  HostFrame, ModelSelection, MuxFrame, RpcRequest, RpcResponse,
+  SessionModels, SessionSearchItem, SkillEntry, WorkspaceId,
+} from '@deepseek-ai/dsh-host-apiproxy/api'
+import type { SessionId } from '@deepseek-ai/dsh-session/types'
+import type { IApiClient } from '@deepseek-ai/dsh-host-apiproxy/client'
+import { RpcId } from '@deepseek-ai/dsh-host-apiproxy/api'
 
 export interface Deferred<T> {
   promise: Promise<T>

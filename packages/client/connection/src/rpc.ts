@@ -57,21 +57,3 @@ export interface HostConnectionHandle {
   /** Generic RPC channel registry. */
   readonly rpc: HostConnectionRpc
 }
-
-/** Client caller for logical RPC channels carried by the current transport. */
-export interface ClientConnectionRpc {
-  /**
-   * Call one endpoint through an already registered logical channel.
-   * @param channel - absolute logical channel such as `/api`.
-   * @param endpoint - channel-relative endpoint such as `goals/create`.
-   * @param payload - channel-owned request payload.
-   * @param signal - optional caller cancellation.
-   * @returns the existing RPC success/error result; correlation stays inside Connection.
-   */
-  call(
-    channel: string,
-    endpoint: string,
-    payload: unknown,
-    signal?: AbortSignal,
-  ): Promise<RpcResult<unknown>>
-}

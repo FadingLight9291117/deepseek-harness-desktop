@@ -8,11 +8,8 @@
   "files": [
     "src/api-path.ts",
     "src/client/api.ts",
-    "src/client/connection.ts",
     "src/client/fixture.ts",
     "src/client/index.ts",
-    "src/client/random-uuid.ts",
-    "src/client/rpc.ts",
     "src/client/web-api-client.ts",
     "src/loopback-hostname.ts",
     "src/rpc.ts"
@@ -44,6 +41,9 @@
     },
     {
       "path": "../../util/brand"
+    },
+    {
+      "path": "../connection-core"
     }
   ]
 }

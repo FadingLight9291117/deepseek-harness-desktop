@@ -7,9 +7,9 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import type { SessionId } from '../src/client/api.ts'
-import type { ConnectionState } from '../src/client/connection.ts'
-import { ConnectionController } from '../src/client/connection.ts'
+import type { SessionId } from '@deepseek-ai/dsh-session/types'
+import type { ConnectionState } from '@deepseek-ai/dsh-client-connection-core'
+import { ConnectionController } from '@deepseek-ai/dsh-client-connection-core'
 import { FakeApiClient, deferred, ok } from './fake-api.client.ts'
 
 const SID = 'fk-c1' as SessionId

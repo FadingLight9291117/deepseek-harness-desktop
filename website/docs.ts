@@ -304,6 +304,7 @@ const subsystemGroups = [
   ]],
   ['平台与接入', 'Platform and access', [
     ['web-server.md', 'HTTP 服务器', 'HTTP server'],
+    ['desktop.md', '桌面应用', 'Desktop surface'],
     ['typert.md', 'Typert', 'Typert'],
     ['client-modules.md', '客户端模块', 'Client modules'],
     ['storage.md', '存储', 'Storage'],
