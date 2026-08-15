@@ -141,11 +141,13 @@
     "verify-vendored-links": "tsx scripts/verify-vendored-links.ts",
     "website:build": "pnpm run docs:build",
     "website:dev": "pnpm run docs:dev",
-    "build:desktop": "pnpm --filter @deepseek-ai/dsh-desktop run build"
+    "build:desktop": "pnpm --filter @deepseek-ai/dsh-desktop run build",
+    "package:desktop": "tsx scripts/package-desktop.ts"
   },
   "devDependencies": {
     "@agentclientprotocol/sdk": "0.25.1",
     "@deepseek-ai/dsh-tool-session-query": "workspace:^",
+    "@electron/packager": "^20.3.0",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",

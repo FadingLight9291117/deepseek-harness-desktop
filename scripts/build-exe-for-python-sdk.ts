@@ -6,11 +6,12 @@
  * runtime imports that pkg cannot discover statically.
  */
 
-import { spawn } from 'node:child_process'
 import { existsSync, statSync } from 'node:fs'
-import { chmod, copyFile, cp, lstat, mkdir, readFile, readdir, realpath, rm, writeFile } from 'node:fs/promises'
-import { basename, dirname, join, resolve, sep } from 'node:path'
-import { parseArgs } from 'node:util'
+import { chmod, copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { basename, dirname, join, resolve } from 'node:path'
+import type { ParseArgsConfig } from 'node:util'
+import { deployStagingPackage, pnpmBin, runCommand } from './deploy-staging.ts'
+import { parseScriptArgs, parseTargetList } from './script-args.ts'
 
 const root = resolve(import.meta.dirname, '..')
 
@@ -143,21 +144,13 @@ class BuildCli {
    * @returns the parsed, validated configuration.
    */
   static parse(argv: string[]): BuildCli {
-    let values: ReturnType<typeof BuildCli.parseRaw>
-    try {
-      values = BuildCli.parseRaw(argv)
-    } catch (error) {
-      console.error(`build-exe-for-python-sdk: ${error instanceof Error ? error.message : String(error)}\n`)
-      console.error(BuildCli.usage())
-      process.exit(1)
+    const values = parseScriptArgs({ args: argv, options: BuildCli.parseOptions() }, () => BuildCli.usage(), 'build-exe-for-python-sdk') as unknown as {
+      'targets'?: string
+      'skip-build': boolean
+      'dry-run': boolean
+      help: boolean
     }
-    if (values.help) {
-      console.log(BuildCli.usage())
-      process.exit(0)
-    }
-    const targets = values.targets === undefined
-      ? [Target.host()]
-      : values.targets.split(',').map(part => part.trim()).filter(part => part !== '').map(spec => Target.parse(spec))
+    const targets = parseTargetList(values.targets, spec => Target.parse(spec), () => Target.host())
     if (targets.length === 0) throw new Error('build-exe-for-python-sdk: --targets is empty.')
     const seen = new Set<string>()
     for (const target of targets) {
@@ -170,16 +163,13 @@ class BuildCli {
     return new BuildCli(targets, values['skip-build'], values['dry-run'])
   }
 
-  private static parseRaw(argv: string[]) {
-    return parseArgs({
-      args: argv,
-      options: {
-        'targets': { type: 'string' },
-        'skip-build': { type: 'boolean', default: false },
-        'dry-run': { type: 'boolean', default: false },
-        'help': { type: 'boolean', default: false },
-      },
-    }).values
+  private static parseOptions() {
+    return {
+      'targets': { type: 'string' },
+      'skip-build': { type: 'boolean', default: false },
+      'dry-run': { type: 'boolean', default: false },
+      'help': { type: 'boolean', default: false },
+    } as const satisfies ParseArgsConfig['options']
   }
 
   private static usage(): string {
@@ -196,20 +186,6 @@ class BuildCli {
       `Stages the node carrier in ${PYTHON_RUNTIME_DIR}/${PYTHON_NODE_SUBDIR} and writes executables to ${OUT_DIR}/.`,
     ].join('\n')
   }
-}
-
-function pnpmBin(): string {
-  return process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'
-}
-
-/**
- * Render a command for logs and errors, quoting arguments with spaces.
- * @param command - the executable.
- * @param args - its arguments.
- * @returns the printable command line.
- */
-function formatCommand(command: string, args: string[]): string {
-  return [command, ...args].map(part => (part.includes(' ') ? JSON.stringify(part) : part)).join(' ')
 }
 
 /**
@@ -242,29 +218,14 @@ class SingleExeBuild {
 
   /** Clear and deploy the runtime closure into the node carrier. */
   async deployStaging(): Promise<void> {
-    if (this.staging === root || root.startsWith(this.staging + sep)) {
-      throw new Error(`build-exe-for-python-sdk: refusing to clear staging dir ${this.staging}: it contains the repo root.`)
-    }
-    if (this.cli.dryRun) console.log(`build-exe-for-python-sdk: [dry-run] rm -rf ${this.staging}`)
-    else await rm(this.staging, { recursive: true, force: true })
-    await this.run('deploy', pnpmBin(), [
-      '--filter',
-      DEPLOY_ROOT_PACKAGE,
-      'deploy',
-      '--legacy',
-      '--prod',
-      '--config.node-linker=hoisted',
-      '--config.auto-install-peers=false',
-      '--config.link-workspace-packages=true',
-      this.staging,
-    ])
-    await this.restoreLegacyHoists()
-    await this.materializeStagedLinks()
-    if (this.cli.dryRun) {
-      for (const name of DEPLOY_ONLY_DOCS) console.log(`build-exe-for-python-sdk: [dry-run] rm -f ${join(this.staging, name)}`)
-    } else {
-      await Promise.all(DEPLOY_ONLY_DOCS.map(name => rm(join(this.staging, name), { force: true })))
-    }
+    await deployStagingPackage({
+      prefix: 'build-exe-for-python-sdk',
+      dryRun: this.cli.dryRun,
+      filter: DEPLOY_ROOT_PACKAGE,
+      staging: this.staging,
+      restoreSource: resolve(root, DEPLOY_SOURCE_NODE_MODULES),
+      removeDocs: DEPLOY_ONLY_DOCS,
+    })
   }
 
   /**
@@ -273,89 +234,6 @@ class SingleExeBuild {
    * so package-local node_modules trees are omitted to preserve one flat Cordis
    * instance and a symlink-free packaged payload.
    */
-  private async restoreLegacyHoists(): Promise<void> {
-    if (this.cli.dryRun) {
-      console.log('build-exe-for-python-sdk: [dry-run] restore direct dependencies omitted by legacy deploy')
-      return
-    }
-    const manifestPath = join(this.staging, 'package.json')
-    const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as {
-      dependencies?: Record<string, string>
-    }
-    const sourceNodeModules = resolve(root, DEPLOY_SOURCE_NODE_MODULES)
-    const restored: string[] = []
-    for (const dependency of Object.keys(manifest.dependencies ?? {}).sort()) {
-      const destination = join(this.staging, 'node_modules', dependency)
-      if (existsSync(destination)) continue
-      const source = join(sourceNodeModules, dependency)
-      if (!existsSync(source)) {
-        throw new Error(
-          `build-exe-for-python-sdk: deployed dependency ${dependency} is absent from both ${destination} and ${source}.`,
-        )
-      }
-      await mkdir(dirname(destination), { recursive: true })
-      const nestedNodeModules = join(source, 'node_modules')
-      await cp(source, destination, {
-        recursive: true,
-        dereference: true,
-        filter: path => path !== nestedNodeModules && !path.startsWith(nestedNodeModules + sep),
-      })
-      restored.push(dependency)
-    }
-    const stillMissing = Object.keys(manifest.dependencies ?? {})
-      .filter(dependency => !existsSync(join(this.staging, 'node_modules', dependency)))
-    if (stillMissing.length > 0) {
-      throw new Error(`build-exe-for-python-sdk: staged dependencies remain missing: ${stillMissing.join(', ')}.`)
-    }
-    if (restored.length > 0) {
-      console.log(`build-exe-for-python-sdk: restored legacy deploy hoists: ${restored.join(', ')}`)
-    }
-  }
-
-  /** Replace deploy-time package links with files and reject any remaining link. */
-  private async materializeStagedLinks(): Promise<void> {
-    if (this.cli.dryRun) {
-      console.log('build-exe-for-python-sdk: [dry-run] materialize staged package links')
-      return
-    }
-    const nodeModules = join(this.staging, 'node_modules')
-    let remaining = await this.findSymlink(nodeModules)
-    while (remaining !== undefined) {
-      const segments = remaining.slice(nodeModules.length + 1).split(sep)
-      const binIndex = segments.lastIndexOf('.bin')
-      if (binIndex >= 0) {
-        await rm(join(nodeModules, ...segments.slice(0, binIndex + 1)), { recursive: true, force: true })
-        remaining = await this.findSymlink(nodeModules)
-        continue
-      }
-      const destination = remaining
-      const source = await realpath(destination)
-      const nestedNodeModules = join(source, 'node_modules')
-      await rm(destination, { recursive: true, force: true })
-      await cp(source, destination, {
-        recursive: true,
-        dereference: true,
-        filter: path => path !== nestedNodeModules && !path.startsWith(nestedNodeModules + sep),
-      })
-      remaining = await this.findSymlink(nodeModules)
-    }
-  }
-
-  /** Return the first symbolic link below a directory, if one exists. */
-  private async findSymlink(directory: string): Promise<string | undefined> {
-    for (const entry of await readdir(directory, { withFileTypes: true })) {
-      const path = join(directory, entry.name)
-      const metadata = await lstat(path)
-      if (metadata.isSymbolicLink()) return path
-      if (metadata.isDirectory()) {
-        const nested = await this.findSymlink(path)
-        if (nested !== undefined) return nested
-      }
-    }
-    return undefined
-  }
-
-  /** Add the executable entry and pkg assets to the staged manifest. */
   async injectPkgConfig(): Promise<void> {
     const patch = { bin: ENTRY_BIN, pkg: { assets: ASSET_GLOBS } }
     const manifestPath = join(this.staging, 'package.json')
@@ -481,31 +359,7 @@ class SingleExeBuild {
    * @param args - its arguments.
    */
   private async run(label: string, command: string, args: string[]): Promise<void> {
-    const printable = formatCommand(command, args)
-    if (this.cli.dryRun) {
-      console.log(`build-exe-for-python-sdk: [dry-run] ${printable}`)
-      return
-    }
-    console.log(`build-exe-for-python-sdk: ${label}: ${printable}`)
-    await new Promise<void>((resolvePromise, reject) => {
-      const child = spawn(command, args, {
-        cwd: root,
-        stdio: 'inherit',
-        // Artifact builds must not mutate or validate a developer's Git hooks.
-        env: { ...process.env, CI: 'true' },
-      })
-      child.once('error', (error) => {
-        reject(new Error(`build-exe-for-python-sdk: ${label} failed to spawn: ${error.message} (${printable})`))
-      })
-      child.once('exit', (code, signal) => {
-        if (code === 0) {
-          resolvePromise()
-          return
-        }
-        const cause = code === null ? `signal ${signal ?? 'unknown'}` : `exit code ${code}`
-        reject(new Error(`build-exe-for-python-sdk: ${label} failed (${cause}): ${printable}`))
-      })
-    })
+    await runCommand('build-exe-for-python-sdk', label, command, args, this.cli.dryRun)
   }
 }
 

@@ -28,9 +28,13 @@ interface Parser<F> {
 
 /** Fetch-based api client for the desktop protocol carrier, with IPC-pushed event streams. */
 export class ElectronApiClient extends AbstractApiClient {
+  /* jscpd:ignore-start — the transport-identical AbstractApiClient hook;
+   * its twin in web-api-client.ts rides browser HTTP while this one rides
+   * the dsh:// protocol carrier, so the bodies stay structurally equal. */
   protected doFetch(input: URL, init?: RequestInit): Promise<Response> {
     return globalThis.fetch(input, init)
   }
+  /* jscpd:ignore-end */
 
   protected override openMux(
     _payload: Parameters<ApiProxy['events']['mux']>[0]['payload'],

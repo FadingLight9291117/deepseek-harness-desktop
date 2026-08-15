@@ -7,6 +7,7 @@
     "bwrap",
     "icacls",
     "musl-gcc",
+    "open",
     "python3",
     "sandbox-exec",
     "tar",
