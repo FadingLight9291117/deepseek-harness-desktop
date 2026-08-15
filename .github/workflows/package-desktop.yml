@@ -1,0 +1,120 @@
+name: Package desktop
+
+# macOS packaging for the Electron desktop shell; see
+# .agents/notes/implemented/process/2026-08-15-desktop-packaging-toolchain.md.
+# Runs manually, from a PR labeled `build-desktop` (remove and reapply to
+# rerun), or as a reusable workflow. Each target stages the production
+# closure, packages, ad-hoc signs, smoke-tests the bundle headless, and
+# uploads the zip artifact. Checkout uses the triggering ref, so dispatch
+# needs no separate ref input.
+on:
+  workflow_call:
+    inputs:
+      targets:
+        description: Comma-separated macOS targets to build; empty builds both.
+        type: string
+        required: false
+        default: ''
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: >-
+          Comma-separated macOS targets. Any subset of:
+          darwin-arm64, darwin-x64. Empty builds both.
+        type: string
+        required: false
+        default: ''
+  pull_request:
+    types: [labeled]
+
+concurrency:
+  # Keep the called workflow distinct from its caller's concurrency group;
+  # github.workflow identifies the caller inside a reusable workflow and keeps
+  # an ordinary CI run from cancelling a full packaging validation on the same ref.
+  group: package-desktop-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # CI runs must never report to the production telemetry endpoint baked
+  # into the desktop boot; the smoke passes the switch explicitly too.
+  DSH_TELEMETRY_DISABLED: '1'
+
+jobs:
+  plan:
+    name: plan targets
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'build-desktop' || github.event_name == 'workflow_call'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Compute matrix from targets input
+        id: plan
+        env:
+          # Label runs and blank dispatch inputs build both targets.
+          TARGETS: ${{ inputs.targets || 'darwin-arm64,darwin-x64' }}
+        run: |
+          set -euo pipefail
+          matrix='[]'
+          IFS=',' read -r -a targets <<< "$TARGETS"
+          for raw in "${targets[@]}"; do
+            t="$(echo "$raw" | xargs)" # trim surrounding whitespace
+            [ -z "$t" ] && continue
+            case "$t" in
+              darwin-arm64) runner=macos-latest ;;
+              darwin-x64)   runner=macos-13 ;;
+              *)
+                echo "::error::Unknown target '$t'. Supported: darwin-arm64, darwin-x64."
+                exit 1
+                ;;
+            esac
+            matrix="$(jq -c --arg target "$t" --arg runner "$runner" '. + [{target: $target, runner: $runner}]' <<< "$matrix")"
+          done
+          if [ "$matrix" = '[]' ]; then
+            echo "::error::The targets input selected nothing to build."
+            exit 1
+          fi
+          echo "Matrix: $matrix"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: plan
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install (immutable)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Package desktop app
+        # Stages the production closure, packages, ad-hoc signs, and
+        # smoke-tests the bundle headless before writing the zip.
+        run: pnpm exec tsx scripts/package-desktop.ts --targets=${{ matrix.target }}
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dsh-desktop-${{ matrix.target }}
+          path: .artifacts/desktop/dsh-desktop-${{ matrix.target }}.zip
+          if-no-files-found: error
+          retention-days: 7

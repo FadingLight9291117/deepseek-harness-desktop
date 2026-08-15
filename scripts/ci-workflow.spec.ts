@@ -371,6 +371,31 @@ describe('Python release workflows', () => {
   })
 })
 
+describe('Desktop packaging workflow', () => {
+  it('packages, smoke-tests, and uploads one zip per macOS target', () => {
+    const workflow = loadWorkflow('.github/workflows/package-desktop.yml')
+    const call = workflowEvent(workflow, 'workflow_call')
+    const plan = workflowJob(workflow, 'plan')
+    const build = workflowJob(workflow, 'build')
+    if (!isRecord(call.inputs) || !Array.isArray(plan.steps) || !Array.isArray(build.steps)) {
+      throw new TypeError('Desktop packaging must define workflow_call inputs and plan steps')
+    }
+
+    const buildSteps: unknown[] = build.steps
+    const packageStep = buildSteps.find(step => isRecord(step) && step.name === 'Package desktop app')
+    const upload = buildSteps.find(step => isRecord(step) && step.uses === 'actions/upload-artifact@v7')
+    expect(call.inputs).toHaveProperty('targets')
+    expect(workflow.concurrency).toMatchObject({
+      group: 'package-desktop-${{ github.workflow }}-${{ github.ref }}',
+    })
+    expect(plan.if).toContain('build-desktop')
+    expect(JSON.stringify(plan.steps)).toContain('darwin-arm64')
+    expect(JSON.stringify(plan.steps)).toContain('darwin-x64')
+    expect(packageStep).toMatchObject({ run: 'pnpm exec tsx scripts/package-desktop.ts --targets=${{ matrix.target }}' })
+    expect(JSON.stringify(upload)).toContain('.artifacts/desktop/dsh-desktop-${{ matrix.target }}.zip')
+  })
+})
+
 describe('Issue lifecycle workflow', () => {
   it('uses explicit review handoff events without rerunning when a draft becomes ready', () => {
     const lifecycle = loadWorkflow('.github/workflows/issue-lifecycle.yml')
