@@ -29,7 +29,7 @@ Two traps observed during implementation and now owned by the script:
 
 ### Artifact stance
 
-macOS `.app` in a zip (`DeepSeek-darwin-<arch>.zip` under `.artifacts/desktop/`), ad-hoc signed. No dmg, no Developer ID signing, no notarization, no auto-update — consistent with the distribution scope recorded in the [desktop shell selection note](../architecture/2026-08-14-desktop-shell-tech-selection.md). A Homebrew cask can consume the release zip later without toolchain changes. The bundle is named DeepSeek (Dock name, executable, and zip basename) and carries the whale icon rasterized from the web favicon (`apps/desktop/build/icon.icns`); Developer ID signing is the remaining follow-up.
+macOS `.app` in a zip (`DeepSeek-darwin-<arch>.zip` under `.artifacts/desktop/`), ad-hoc signed. No dmg, no Developer ID signing, no notarization, no auto-update — consistent with the distribution scope recorded in the [desktop shell selection note](../architecture/2026-08-14-desktop-shell-tech-selection.md). A Homebrew cask can consume the release zip later without toolchain changes. The bundle is named DeepSeek (Dock name, executable, and zip basename) and carries the whale icon from a committed `apps/desktop/build/icon.icns` (regenerated from the web favicon when it changes — macOS bundles accept no SVG); Developer ID signing is the remaining follow-up.
 
 ### CI
 

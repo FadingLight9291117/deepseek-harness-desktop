@@ -36,4 +36,4 @@ The pipeline stages the production closure with `pnpm deploy`, packages it with 
 - macOS only for v1 distribution and GUI CI; the native adapters themselves use cross-platform Electron APIs and preserve Windows paths unchanged.
 - Electron cannot programmatically close an already-visible directory panel on caller abort; the request settles and discards the eventual selection, while the panel remains until dismissal or parent-window closure.
 - No tray, system notifications, auto-update, or installers (v1 scope).
-- The app bundle is named DeepSeek and carries the whale icon rasterized from the web favicon (`apps/desktop/build/icon.icns`); the window title remains the web UI's own. The workspace's node-pty build ships as-is (dev parity, no Electron-ABI rebuild); Developer ID signing and notarization are deferred.
+- The app bundle is named DeepSeek and carries the whale icon committed as `apps/desktop/build/icon.icns` (regenerate from the web favicon when it changes); the window title remains the web UI's own. The workspace's node-pty build ships as-is (dev parity, no Electron-ABI rebuild); Developer ID signing and notarization are deferred.

@@ -36,4 +36,4 @@ pnpm run package:desktop -- --skip-build  # reuse already-built workspace libs
 - v1 发行与 GUI CI 仅支持 macOS；原生适配器本身使用跨平台 Electron API，并保持 Windows 路径不变。
 - Electron 无法在调用方中止时以编程方式关闭已显示的目录面板；请求会结算并丢弃最终选择，而面板会保留到用户关闭或父窗口关闭。
 - 无托盘、系统通知、自动更新与安装器（v1 范围）。
-- 应用 bundle 名为 DeepSeek，图标由 web favicon 光栅化为 `apps/desktop/build/icon.icns`；窗口标题仍是 web UI 自己的。workspace 中的 node-pty 构建原样随包（与 dev 行为一致，无 Electron-ABI rebuild）；Developer ID 签名与公证留待后续。
+- 应用 bundle 名为 DeepSeek，图标以 `apps/desktop/build/icon.icns` 提交（favicon 变更时重新生成）；窗口标题仍是 web UI 自己的。workspace 中的 node-pty 构建原样随包（与 dev 行为一致，无 Electron-ABI rebuild）；Developer ID 签名与公证留待后续。

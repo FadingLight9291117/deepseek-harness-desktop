@@ -29,7 +29,7 @@ staging 在打包器运行前修复 deploy 的三类缺口:
 
 ### 产物立场
 
-macOS `.app` 打成 zip(`.artifacts/desktop/` 下 `DeepSeek-darwin-<arch>.zip`),ad-hoc 签名。无 dmg、无 Developer ID 签名、无公证、无自动更新——与[桌面壳选型 note](../architecture/2026-08-14-desktop-shell-tech-selection.md)记录的发行范围一致。将来 Homebrew cask 可以直接消费 release zip,无需改动工具链。bundle 名为 DeepSeek(Dock 名、可执行文件与 zip 基名),图标由 web favicon 光栅化而来(`apps/desktop/build/icon.icns`);Developer ID 签名是剩余的后续项。
+macOS `.app` 打成 zip(`.artifacts/desktop/` 下 `DeepSeek-darwin-<arch>.zip`),ad-hoc 签名。无 dmg、无 Developer ID 签名、无公证、无自动更新——与[桌面壳选型 note](../architecture/2026-08-14-desktop-shell-tech-selection.md)记录的发行范围一致。将来 Homebrew cask 可以直接消费 release zip,无需改动工具链。bundle 名为 DeepSeek(Dock 名、可执行文件与 zip 基名),图标来自提交的 `apps/desktop/build/icon.icns` 快照(favicon 变更时重新生成——macOS bundle 不吃 SVG);Developer ID 签名是剩余的后续项。
 
 ### CI
 
