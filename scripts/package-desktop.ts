@@ -28,7 +28,7 @@ const ARTIFACTS_DIR = resolve(root, '.artifacts', 'desktop')
 const APP_NAME = 'DeepSeek'
 /** macOS bundle id. */
 const APP_BUNDLE_ID = 'ai.deepseek.dsh-desktop'
-/** App icon source; the web favicon rasterized to .icns. */
+/** App icon committed beside the app source; regenerate from the web favicon when it changes. */
 const APP_ICON = join(APP_DIR, 'build', 'icon.icns')
 /** CFBundleShortVersionString accepts X.Y.Z only; the npm pre-release stays in the manifest. */
 const APP_VERSION = '0.1.0'
@@ -288,13 +288,13 @@ class DesktopPackageBuild {
         prune: false,
         electronVersion: this.electronVersion(),
         appBundleId: APP_BUNDLE_ID,
-        icon: APP_ICON,
         extendInfo: { CFBundleDisplayName: APP_NAME },
         asar: false,
       })
       if (!existsSync(appPath)) throw new Error(`package-desktop: packager produced no app at ${appPath}.`)
       // The packager leaves its default Electron icon in place; replace the
-      // file the bundle's CFBundleIconFile already names with the app icon.
+      // file the bundle's CFBundleIconFile already names with the committed
+      // app icon.
       await cp(APP_ICON, join(appPath, 'Contents', 'Resources', 'electron.icns'))
     }
     // arm64 macOS refuses unsigned binaries; ad-hoc signing is the v1
