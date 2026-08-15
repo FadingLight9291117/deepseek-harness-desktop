@@ -392,7 +392,7 @@ describe('Desktop packaging workflow', () => {
     expect(JSON.stringify(plan.steps)).toContain('darwin-arm64')
     expect(JSON.stringify(plan.steps)).toContain('darwin-x64')
     expect(packageStep).toMatchObject({ run: 'pnpm exec tsx scripts/package-desktop.ts --targets=${{ matrix.target }}' })
-    expect(JSON.stringify(upload)).toContain('.artifacts/desktop/dsh-desktop-${{ matrix.target }}.zip')
+    expect(JSON.stringify(upload)).toContain('.artifacts/desktop/DeepSeek-${{ matrix.target }}.zip')
   })
 })
 

@@ -29,7 +29,7 @@ staging 在打包器运行前修复 deploy 的三类缺口:
 
 ### 产物立场
 
-macOS `.app` 打成 zip(`.artifacts/desktop/` 下 `dsh-desktop-darwin-<arch>.zip`),ad-hoc 签名。无 dmg、无 Developer ID 签名、无公证、无自动更新——与[桌面壳选型 note](../architecture/2026-08-14-desktop-shell-tech-selection.md)记录的发行范围一致。将来 Homebrew cask 可以直接消费 release zip,无需改动工具链。v1 使用默认 Electron 图标;图标资产与 Developer ID 签名留作后续。
+macOS `.app` 打成 zip(`.artifacts/desktop/` 下 `DeepSeek-darwin-<arch>.zip`),ad-hoc 签名。无 dmg、无 Developer ID 签名、无公证、无自动更新——与[桌面壳选型 note](../architecture/2026-08-14-desktop-shell-tech-selection.md)记录的发行范围一致。将来 Homebrew cask 可以直接消费 release zip,无需改动工具链。bundle 名为 DeepSeek(Dock 名、可执行文件与 zip 基名),图标由 web favicon 光栅化而来(`apps/desktop/build/icon.icns`);Developer ID 签名是剩余的后续项。
 
 ### CI
 
@@ -40,7 +40,7 @@ macOS `.app` 打成 zip(`.artifacts/desktop/` 下 `dsh-desktop-darwin-<arch>.zip
 - `pnpm run package:desktop [--targets=...] [--skip-build] [--install] [--dry-run]` 产出并可安装应用;首次运行下载 Electron dist zip(github.com 不可达时设 `ELECTRON_MIRROR`)。
 - 打包应用与窗口开发模式启动同一棵 profile 树;headless 冒烟证明 bundle 完整性(profile 解析、healed 回退、宿主树)。
 - node-pty 按 workspace 中已安装的预编译 addon 随包(与 dev 行为一致);针对 Electron ABI 的 rebuild 不在范围内。
-- 浏览器下载的 zip 带 quarantine 属性;`xattr -dr com.apple.quarantine dsh-desktop.app` 清除。
+- 浏览器下载的 zip 带 quarantine 属性;`xattr -dr com.apple.quarantine DeepSeek.app` 清除。
 
 ## 备选方案
 

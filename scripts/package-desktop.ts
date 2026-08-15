@@ -8,7 +8,7 @@
 
 import { spawn } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
-import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { chmod, cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { homedir, tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import type { ParseArgsConfig } from 'node:util'
@@ -24,10 +24,12 @@ const APP_FILTER = '@deepseek-ai/dsh-desktop'
 const APP_DIR = resolve(root, 'apps/desktop')
 /** Artifact and staging root; `.artifacts/` is gitignored. */
 const ARTIFACTS_DIR = resolve(root, '.artifacts', 'desktop')
-/** App name: the packaged executable and bundle name. */
-const APP_NAME = 'dsh-desktop'
+/** App name: the packaged executable, bundle, and Dock name. */
+const APP_NAME = 'DeepSeek'
 /** macOS bundle id. */
 const APP_BUNDLE_ID = 'ai.deepseek.dsh-desktop'
+/** App icon source; the web favicon rasterized to .icns. */
+const APP_ICON = join(APP_DIR, 'build', 'icon.icns')
 /** CFBundleShortVersionString accepts X.Y.Z only; the npm pre-release stays in the manifest. */
 const APP_VERSION = '0.1.0'
 /** The boot marker the packaged smoke waits for (host-boot.ts). */
@@ -42,7 +44,7 @@ type Arch = (typeof ARCHES)[number]
 class Target {
   private constructor(readonly arch: Arch) {}
 
-  /** The artifact basename, e.g. `dsh-desktop-darwin-arm64`. */
+  /** The artifact basename, e.g. `DeepSeek-darwin-arm64`. */
   get spec(): string {
     return `${APP_NAME}-darwin-${this.arch}`
   }
@@ -123,7 +125,7 @@ class PackageCli {
       '  --dry-run              print every command and filesystem change without executing.',
       '  --help                 print this help.',
       '',
-      `Writes dsh-desktop-darwin-<arch>.zip into ${ARTIFACTS_DIR}/.`,
+      `Writes DeepSeek-darwin-<arch>.zip into ${ARTIFACTS_DIR}/.`,
       'The first run downloads the Electron dist zip; set ELECTRON_MIRROR when github.com is unreachable.',
     ].join('\n')
   }
@@ -172,7 +174,7 @@ export async function prepareNativePty(staging: string, target: Target): Promise
  */
 export async function smokePackagedApp(appPath: string): Promise<string> {
   const binary = join(appPath, 'Contents', 'MacOS', APP_NAME)
-  const home = await mkdtemp(join(tmpdir(), 'dsh-desktop-smoke-'))
+  const home = await mkdtemp(join(tmpdir(), 'deepseek-desktop-smoke-'))
   let output = ''
   const child = spawn(binary, ['--headless-boot', '--port', '0'], {
     env: {
@@ -286,10 +288,14 @@ class DesktopPackageBuild {
         prune: false,
         electronVersion: this.electronVersion(),
         appBundleId: APP_BUNDLE_ID,
-        extendInfo: { CFBundleDisplayName: 'dsh Desktop' },
+        icon: APP_ICON,
+        extendInfo: { CFBundleDisplayName: APP_NAME },
         asar: false,
       })
       if (!existsSync(appPath)) throw new Error(`package-desktop: packager produced no app at ${appPath}.`)
+      // The packager leaves its default Electron icon in place; replace the
+      // file the bundle's CFBundleIconFile already names with the app icon.
+      await cp(APP_ICON, join(appPath, 'Contents', 'Resources', 'electron.icns'))
     }
     // arm64 macOS refuses unsigned binaries; ad-hoc signing is the v1
     // stance (Developer ID signing and notarization stay out of scope).

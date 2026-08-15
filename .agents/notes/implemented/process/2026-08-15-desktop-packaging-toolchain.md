@@ -29,7 +29,7 @@ Two traps observed during implementation and now owned by the script:
 
 ### Artifact stance
 
-macOS `.app` in a zip (`dsh-desktop-darwin-<arch>.zip` under `.artifacts/desktop/`), ad-hoc signed. No dmg, no Developer ID signing, no notarization, no auto-update — consistent with the distribution scope recorded in the [desktop shell selection note](../architecture/2026-08-14-desktop-shell-tech-selection.md). A Homebrew cask can consume the release zip later without toolchain changes. The default Electron icon ships; icon assets and Developer ID signing are follow-ups.
+macOS `.app` in a zip (`DeepSeek-darwin-<arch>.zip` under `.artifacts/desktop/`), ad-hoc signed. No dmg, no Developer ID signing, no notarization, no auto-update — consistent with the distribution scope recorded in the [desktop shell selection note](../architecture/2026-08-14-desktop-shell-tech-selection.md). A Homebrew cask can consume the release zip later without toolchain changes. The bundle is named DeepSeek (Dock name, executable, and zip basename) and carries the whale icon rasterized from the web favicon (`apps/desktop/build/icon.icns`); Developer ID signing is the remaining follow-up.
 
 ### CI
 
@@ -40,7 +40,7 @@ macOS `.app` in a zip (`dsh-desktop-darwin-<arch>.zip` under `.artifacts/desktop
 - `pnpm run package:desktop [--targets=...] [--skip-build] [--install] [--dry-run]` produces and optionally installs the app; the first run downloads the Electron dist zip (set `ELECTRON_MIRROR` where github.com is unreachable).
 - The packaged app boots the same profile tree as the window dev run; the headless smoke proves bundle completeness (profile resolution, healed fallback, host tree).
 - node-pty ships its prebuilt addon as installed in the workspace (dev parity); Electron-ABI rebuilds stay out of scope.
-- A browser-downloaded zip carries the quarantine attribute; `xattr -dr com.apple.quarantine dsh-desktop.app` clears it.
+- A browser-downloaded zip carries the quarantine attribute; `xattr -dr com.apple.quarantine DeepSeek.app` clears it.
 
 ## Alternatives considered
 

@@ -27,7 +27,7 @@ pnpm run package:desktop                  # package only; zip lands in .artifact
 pnpm run package:desktop -- --skip-build  # reuse already-built workspace libs
 ```
 
-The pipeline stages the production closure with `pnpm deploy`, packages it with `@electron/packager` (asar off — the loader and the `/plugins` route read real files), ad-hoc signs, boots the bundle headless as its own verification, and writes `dsh-desktop-darwin-<arch>.zip`. The route and its traps are recorded in the [packaging toolchain note](../../.agents/notes/implemented/process/2026-08-15-desktop-packaging-toolchain.md). The first run downloads the Electron dist zip — set `ELECTRON_MIRROR` where github.com is unreachable. A zip downloaded through a browser carries the quarantine attribute; clear it with `xattr -dr com.apple.quarantine dsh-desktop.app`. CI builds the same artifact per PR label `build-desktop` (`.github/workflows/package-desktop.yml`).
+The pipeline stages the production closure with `pnpm deploy`, packages it with `@electron/packager` (asar off — the loader and the `/plugins` route read real files), ad-hoc signs, boots the bundle headless as its own verification, and writes `DeepSeek-darwin-<arch>.zip`. The route and its traps are recorded in the [packaging toolchain note](../../.agents/notes/implemented/process/2026-08-15-desktop-packaging-toolchain.md). The first run downloads the Electron dist zip — set `ELECTRON_MIRROR` where github.com is unreachable. A zip downloaded through a browser carries the quarantine attribute; clear it with `xattr -dr com.apple.quarantine DeepSeek.app`. CI builds the same artifact per PR label `build-desktop` (`.github/workflows/package-desktop.yml`).
 
 ## Known Limitations and Deferred Work
 
@@ -36,4 +36,4 @@ The pipeline stages the production closure with `pnpm deploy`, packages it with 
 - macOS only for v1 distribution and GUI CI; the native adapters themselves use cross-platform Electron APIs and preserve Windows paths unchanged.
 - Electron cannot programmatically close an already-visible directory panel on caller abort; the request settles and discards the eventual selection, while the panel remains until dismissal or parent-window closure.
 - No tray, system notifications, auto-update, or installers (v1 scope).
-- The packaged app ships the default Electron icon and the workspace's node-pty build (dev parity, no Electron-ABI rebuild); icon assets, Developer ID signing, and notarization are deferred.
+- The app bundle is named DeepSeek and carries the whale icon rasterized from the web favicon (`apps/desktop/build/icon.icns`); the window title remains the web UI's own. The workspace's node-pty build ships as-is (dev parity, no Electron-ABI rebuild); Developer ID signing and notarization are deferred.

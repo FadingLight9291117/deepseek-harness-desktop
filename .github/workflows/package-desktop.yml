@@ -114,7 +114,7 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: dsh-desktop-${{ matrix.target }}
-          path: .artifacts/desktop/dsh-desktop-${{ matrix.target }}.zip
+          name: DeepSeek-${{ matrix.target }}
+          path: .artifacts/desktop/DeepSeek-${{ matrix.target }}.zip
           if-no-files-found: error
           retention-days: 7
