@@ -20,6 +20,9 @@
       "path": "../modules"
     },
     {
+      "path": "../connection-core"
+    },
+    {
       "path": "../../runtime-diagnostics/invariants"
     }
   ]

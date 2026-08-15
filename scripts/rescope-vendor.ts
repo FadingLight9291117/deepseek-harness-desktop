@@ -169,6 +169,8 @@ const EXACT_EDITS: readonly ExactEdit[] = [
   },
   {
     // The rescoped name is already covered by the `@deepseek-ai/.+` pattern beside it.
+    // The anchor below is the block that follows `examples` since the desktop
+    // workspaces reorganized knip.json (packages/*/* moved into that slot).
     id: 'knip-logger-console',
     file: 'knip.json',
     find: `      "ignoreDependencies": [
@@ -176,12 +178,12 @@ const EXACT_EDITS: readonly ExactEdit[] = [
         "@deepseek-ai/.+"
       ]
     },
-    "packages/util/home": {`,
+    "packages/*/*": {`,
     replace: `      "ignoreDependencies": [
         "@deepseek-ai/.+"
       ]
     },
-    "packages/util/home": {`,
+    "packages/*/*": {`,
     expect: 1,
   },
   {
