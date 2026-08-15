@@ -19,6 +19,16 @@ node apps/desktop/lib/index.js --headless-boot --patch ./local.patch.yml
 
 **清单契约：** `healProfilesModuleFallback` 从本应用自身的依赖闭包把 profile 挂载的插件行链接进 `$DSH_HOME/profiles/node_modules`（其 BFS 在 workspace 内只解析清单一级条目），因此 `package.json` dependencies 必须列出每个被挂载 bundle 行指名的包——即 `dsh-base` 与 `dsh-web-app` 两个 bundle 依赖名册的并集，再加上 shipped agent preset 指名的每一个包。任一 bundle 补丁或 shipped preset 新增行时，名单在同一变更中同步更新。
 
+## 打包
+
+```sh
+pnpm run package:desktop -- --install     # package + install to ~/Applications
+pnpm run package:desktop                  # package only; zip lands in .artifacts/desktop/
+pnpm run package:desktop -- --skip-build  # reuse already-built workspace libs
+```
+
+管线用 `pnpm deploy` staging 生产闭包，用 `@electron/packager` 打包（关闭 asar——Loader 与 `/plugins` 路由读真实文件），ad-hoc 签名，以 headless 启动 bundle 作为自身验证，写出 `dsh-desktop-darwin-<arch>.zip`。路线与其陷阱记录在[打包工具链 note](../../.agents/notes/implemented/process/2026-08-15-desktop-packaging-toolchain.md)。首次运行下载 Electron dist zip——github.com 不可达时设 `ELECTRON_MIRROR`。浏览器下载的 zip 带 quarantine 属性；用 `xattr -dr com.apple.quarantine dsh-desktop.app` 清除。CI 按 PR 标签 `build-desktop` 构建同一产物（`.github/workflows/package-desktop.yml`）。
+
 ## Known Limitations and Deferred Work
 
 - profile 补丁热重载不可用（HMR 服务需要只有 `--expose-internals` 能暴露的 loader internals）；重启应用以应用 profile 编辑。
@@ -26,3 +36,4 @@ node apps/desktop/lib/index.js --headless-boot --patch ./local.patch.yml
 - v1 发行与 GUI CI 仅支持 macOS；原生适配器本身使用跨平台 Electron API，并保持 Windows 路径不变。
 - Electron 无法在调用方中止时以编程方式关闭已显示的目录面板；请求会结算并丢弃最终选择，而面板会保留到用户关闭或父窗口关闭。
 - 无托盘、系统通知、自动更新与安装器（v1 范围）。
+- 打包应用携带默认 Electron 图标与 workspace 中的 node-pty 构建（与 dev 行为一致，无 Electron-ABI rebuild）；图标资产、Developer ID 签名与公证留待后续。

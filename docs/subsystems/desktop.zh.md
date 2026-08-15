@@ -2,7 +2,7 @@
 
 [English](desktop.md) | 中文
 
-Electron 桌面壳（`apps/desktop`，`@deepseek-ai/dsh-desktop`）：一个窗口，通过零端口 `dsh://` 协议载体运行线上 web UI，与 CLI 共享 profile 与 harness home。应用启动 `desktop` profile（base + web-app + desktop-app 三层 bundle，见 [`dsh-desktop-app`](../../packages/bundle/desktop-app/README.md)）；desktop-app 层禁用 HTTP 传输行，[`dsh-client-connection-ipc`](../../packages/client/connection-ipc/README.md) 载体从单一协议 authority 服务整个客户端——注入 boot 清单的 index、插件 bundle、vite 资源与 `/api`（connection RPC 通道——typert 远程端点——叠加进程内 `toFetchHandler` 网关兜底）。无界事件流经沙箱 preload 桥走 IPC 推送通道，因为 Electron 会缓冲协议响应。打开路径操作与目录选择使用能力服务之后的现有原生宿主提供方；Electron 专用提供方可以在不修改消费方的情况下替换它们。技术栈选择记录在 [desktop shell Agent Note](../../.agents/notes/implemented/architecture/2026-08-14-desktop-shell-tech-selection.md) 中。
+Electron 桌面壳（`apps/desktop`，`@deepseek-ai/dsh-desktop`）：一个窗口，通过零端口 `dsh://` 协议载体运行线上 web UI，与 CLI 共享 profile 与 harness home。应用启动 `desktop` profile（base + web-app + desktop-app 三层 bundle，见 [`dsh-desktop-app`](../../packages/bundle/desktop-app/README.md)）；desktop-app 层禁用 HTTP 传输行，[`dsh-client-connection-ipc`](../../packages/client/connection-ipc/README.md) 载体从单一协议 authority 服务整个客户端——注入 boot 清单的 index、插件 bundle、vite 资源与 `/api`（connection RPC 通道——typert 远程端点——叠加进程内 `toFetchHandler` 网关兜底）。无界事件流经沙箱 preload 桥走 IPC 推送通道，因为 Electron 会缓冲协议响应。打开路径操作与目录选择使用能力服务之后的现有原生宿主提供方；Electron 专用提供方可以在不修改消费方的情况下替换它们。发行形态是 zip 打包的 macOS `.app`（`pnpm run package:desktop`），ad-hoc 签名、由管线自身 headless 冒烟验证；路线记录在[打包工具链 note](../../.agents/notes/implemented/process/2026-08-15-desktop-packaging-toolchain.md)，CI 按 PR 标签 `build-desktop` 构建该产物。技术栈选择记录在 [desktop shell Agent Note](../../.agents/notes/implemented/architecture/2026-08-14-desktop-shell-tech-selection.md) 中。
 
 ## Services
 
