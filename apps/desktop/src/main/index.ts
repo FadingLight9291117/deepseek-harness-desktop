@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url'
 import { createDesktopProtocolHandler, createEventStreamPump } from '@deepseek-ai/dsh-client-connection-ipc'
 import { parseDesktopArgs } from './args.ts'
 import { bootDesktopHost, rendererDistRoot } from './host-boot.ts'
+import { windowBootOptions } from './window-boot.ts'
 
 /** Sandboxed preload bundle selected across the nested source main/ and flattened built lib/ layouts. */
 const BUILT_PRELOAD_INDEX = fileURLToPath(new URL('./preload/index.cjs', import.meta.url))
@@ -51,9 +52,9 @@ if (invocation.headless) {
  */
 async function runWindow(patchFiles: readonly string[], profileArgs: readonly string[]): Promise<void> {
   const electron = await import('electron') as unknown as Partial<typeof import('electron')>
-  const { app: electronApp, BrowserWindow, ipcMain, protocol } = electron
-  if (electronApp === undefined || BrowserWindow === undefined
-    || ipcMain === undefined || protocol === undefined) {
+  const { app: electronApp, BrowserWindow, dialog, ipcMain, protocol, shell } = electron
+  if (electronApp === undefined || BrowserWindow === undefined || dialog === undefined
+    || ipcMain === undefined || protocol === undefined || shell === undefined) {
     process.stderr.write('dsh desktop: not running under Electron; use --headless-boot for a windowless boot\n')
     process.exit(2)
   }
@@ -63,11 +64,11 @@ async function runWindow(patchFiles: readonly string[], profileArgs: readonly st
     scheme: 'dsh',
     privileges: { standard: true, secure: true, supportFetchAPI: true },
   }])
-  const desktop = await bootDesktopHost({
-    profile: 'desktop',
+  const desktop = await bootDesktopHost(windowBootOptions(
+    { BrowserWindow, dialog, shell },
     patchFiles,
-    args: profileArgs,
-  })
+    profileArgs,
+  ))
   // The zero-port carrier: serve the whole client — index with boot
   // manifest, bundles, assets, /api — from the booted host tree.
   protocol.handle('dsh', createDesktopProtocolHandler({

@@ -10,7 +10,8 @@
     "src/main/host-boot.ts",
     "src/main/index.ts",
     "src/main/native.ts",
-    "src/main/process-shutdown.ts"
+    "src/main/process-shutdown.ts",
+    "src/main/window-boot.ts"
   ],
   "references": [
     {
