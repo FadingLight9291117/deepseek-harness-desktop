@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-桌面协议载体，零端口替代 webserver。node 半导出纯 `dsh://app` 请求→响应工厂（Electron 应用把它接入 `protocol.handle`——此包从不 import electron）：`/api/**` 走与浏览器载体相同的进程内 `toFetchHandler(apiProxy)`，`/plugins/<id>/client.js[.map]` 提供模块注册表解析出的 bundle，`/index.html` 提供注入 `window.__DSH_BOOT__` 后的构建 renderer（`injectBootManifest`），其余路径提供 vite dist 静态资源。browser 半在 `ElectronApiClient` 之上提供 `ctx.connection`——unary 调用走纯 `globalThis.fetch` 子类；mux/host 事件流走 IPC 推送通道（`createEventStreamPump` → 沙箱 preload 桥 → 客户端的 `openMux`/`openHost` 覆写），因为 Electron 会缓冲协议响应、无界 SSE body 无法流经 `dsh://`。plain Node 下（built-bin 冒烟）协议不存在，什么都不注册。页面只面对一个本地协议 authority，因此 loopback 姿态恒为真、也没有 Host 信任围栏：唯一的客户端就是应用自己的 renderer。
+桌面协议载体，零端口替代 webserver。node 半导出纯 `dsh://app` 请求→响应工厂（Electron 应用把它接入 `protocol.handle`——此包从不 import electron）：`/api/**` 走应用装配的派发器——connection RPC 通道（typert 远程端点，如 `commands/list`）叠加进程内 `toFetchHandler(apiProxy)` 兜底，与浏览器载体经其 connection 行装配的共享 handler 分层一致——，`/plugins/<id>/client.js[.map]` 提供模块注册表解析出的 bundle，`/index.html` 提供注入 `window.__DSH_BOOT__` 后的构建 renderer（`injectBootManifest`），其余路径提供 vite dist 静态资源。browser 半在 `ElectronApiClient` 之上提供 `ctx.connection`——unary 调用走纯 `globalThis.fetch` 子类；mux/host 事件流走 IPC 推送通道（`createEventStreamPump` → 沙箱 preload 桥 → 客户端的 `openMux`/`openHost` 覆写），因为 Electron 会缓冲协议响应、无界 SSE body 无法流经 `dsh://`。plain Node 下（built-bin 冒烟）协议不存在，什么都不注册。页面只面对一个本地协议 authority，因此 loopback 姿态恒为真、也没有 Host 信任围栏：唯一的客户端就是应用自己的 renderer。
 
 每个流泵把来源故障与意外结束转成终止 `stream/error` 帧。renderer 产出该帧，使 `ConnectionController` 能观察传输丢失并重连。中止或替换一个 generation 会退订并立即唤醒其待定 iterator；主动中止属于本地终止，不发送远端错误。
 

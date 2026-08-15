@@ -130,8 +130,49 @@ describe.skipIf(process.platform !== 'darwin' && process.env.CI === undefined &&
     expect(muxFrames.createdOk, `${JSON.stringify(muxFrames)}\n${appOutput}`).toBe(true)
     expect(muxFrames.methods.length, `${JSON.stringify(muxFrames)}\n${appOutput}`).toBeGreaterThan(0)
 
-    console.log('[carrier-e2e] step 4: settled UI')
-    // 4. The settled web UI: the shell kernel mounted the real interface
+    console.log('[carrier-e2e] step 4: typert remotes')
+    // 4. Typert remote channels: slash commands and the Cordis panels call
+    // endpoints (`commands/list`, `dynamicCordisRunner/inventory`) that the
+    // bare gateway handler does not route — they dispatch through the
+    // connection RPC interceptor the host tree registers on `ctx.connection`.
+    // The desktop carrier must mount the shared /api handler (interceptor
+    // first, gateway fallback) exactly like the web transport, or these
+    // endpoints answer 404 and the command surface fails to load.
+    const typertRemotes = await page.evaluate(async (): Promise<{
+      commandsStatus: number
+      commandsOk: boolean | undefined
+      inventoryStatus: number
+      inventoryOk: boolean | undefined
+    }> => {
+      const rpc = async (
+        method: string,
+        payload: unknown,
+      ): Promise<{ status: number; body: { result?: { ok?: boolean; value?: { sessionId?: string } } } }> => {
+        const response = await fetch(`/api/${method}`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ type: 'client-request', rpcId: `carrier-e2e-${method}`, method, payload }),
+          signal: AbortSignal.timeout(20_000),
+        })
+        return { status: response.status, body: await response.json() as { result?: { ok?: boolean; value?: { sessionId?: string } } } }
+      }
+      const created = await rpc('session.create', {})
+      const commands = await rpc('commands/list', { args: { agentId: created.body.result?.value?.sessionId } })
+      const inventory = await rpc('dynamicCordisRunner/inventory', { args: {} })
+      return {
+        commandsStatus: commands.status,
+        commandsOk: commands.body.result?.ok,
+        inventoryStatus: inventory.status,
+        inventoryOk: inventory.body.result?.ok,
+      }
+    })
+    expect(typertRemotes.commandsStatus, `${JSON.stringify(typertRemotes)}\n${appOutput}`).toBe(200)
+    expect(typertRemotes.commandsOk, `${JSON.stringify(typertRemotes)}\n${appOutput}`).toBe(true)
+    expect(typertRemotes.inventoryStatus, `${JSON.stringify(typertRemotes)}\n${appOutput}`).toBe(200)
+    expect(typertRemotes.inventoryOk, `${JSON.stringify(typertRemotes)}\n${appOutput}`).toBe(true)
+
+    console.log('[carrier-e2e] step 5: settled UI')
+    // 5. The settled web UI: the shell kernel mounted the real interface
     // (the chat composer is the stable landmark of the assembled app — the
     // same selector the browser lane's smoke uses).
     await page.locator('textarea').first().waitFor({ state: 'visible', timeout: 30_000 })

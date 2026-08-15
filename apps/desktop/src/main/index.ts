@@ -18,6 +18,8 @@
 import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { createDesktopProtocolHandler, createEventStreamPump } from '@deepseek-ai/dsh-client-connection-ipc'
+import { API_PATH } from '@deepseek-ai/dsh-client-connection'
+import { toFetchHandler } from '@deepseek-ai/dsh-host-apiproxy'
 import { parseDesktopArgs } from './args.ts'
 import { bootDesktopHost, rendererDistRoot } from './host-boot.ts'
 import { windowBootOptions } from './window-boot.ts'
@@ -70,8 +72,14 @@ async function runWindow(patchFiles: readonly string[], profileArgs: readonly st
     profileArgs,
   ))
   // The zero-port carrier: serve the whole client — index with boot
-  // manifest, bundles, assets, /api — from the booted host tree.
+  // manifest, bundles, assets, /api — from the booted host tree. /api
+  // mirrors the web transport's shared handler: the connection RPC
+  // channels (typert remotes) first, the in-process gateway as fallback.
+  const apiDispatch = desktop.connection.createSharedFetchHandler(API_PATH, {
+    fetch: request => toFetchHandler(desktop.ctx.apiProxy).fetch(request),
+  })
   protocol.handle('dsh', createDesktopProtocolHandler({
+    api: apiDispatch,
     apiProxy: desktop.ctx.apiProxy,
     modules: desktop.ctx.get('clientModules'),
     distRoot: rendererDistRoot(),

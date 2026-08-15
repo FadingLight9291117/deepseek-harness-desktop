@@ -35,6 +35,7 @@ import {
 import { resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import { DSH_LAUNCH_ENVIRONMENT_KEY } from '@deepseek-ai/dsh-launch-environment'
 import { provideCmdline } from '@deepseek-ai/dsh-cmdline'
+import { HostConnectionService } from '@deepseek-ai/dsh-client-connection'
 import type {} from '@deepseek-ai/dsh-desktop-app'
 import type {} from '@deepseek-ai/dsh-host-apiproxy'
 import type {} from '@deepseek-ai/dsh-host-directory-picker-electron'
@@ -212,12 +213,19 @@ function suppressShutdownError(ctx: Context, signal: AbortSignal, error: unknown
  * `dsh desktop: host ready` marker once the loader settles — the headless
  * smoke's readiness signal.
  * @param options - profile name, overlays, and the booted app's own arguments.
- * @returns the settled root context and the shutdown controller.
+ * @returns the settled root context, the shutdown controller, and the
+ * connection RPC service (the app composes the protocol carrier's /api
+ * handler from it once the gateway service exists).
  */
-export async function bootDesktopHost(options: BootDesktopHostOptions): Promise<{ ctx: Context; shutdown: ProcessShutdown }> {
+export async function bootDesktopHost(options: BootDesktopHostOptions): Promise<{
+  ctx: Context
+  shutdown: ProcessShutdown
+  connection: HostConnectionService
+}> {
   const composed = composeProfile(options.profile, options.patchFiles)
   const app: { current?: Context } = {}
   const shutdown = createProcessShutdown(async () => { await app.current?.fiber.dispose() })
+  let connection: HostConnectionService | undefined
   const signalShutdown = new AbortController()
   const interrupt = (code: number): void => {
     signalShutdown.abort()
@@ -239,6 +247,15 @@ export async function bootDesktopHost(options: BootDesktopHostOptions): Promise<
   const ctx = await boot(NAME, rootConfig, structuredClone(allPatches(composed)), (hostCtx) => {
     app.current = hostCtx
     hostCtx.provide(DSH_LAUNCH_ENVIRONMENT_KEY, loadLayeredEnv(NAME))
+    // The web transport's connection row provides this service and mounts
+    // its shared /api handler on the webserver. The desktop has no
+    // webserver, so the app provides the service at the same root and the
+    // protocol carrier mounts its shared handler instead: the typert
+    // gateway row (base bundle) registers its /api interceptor on this
+    // service, which routes the typert remote endpoints (slash commands,
+    // the Cordis panels) the bare gateway handler does not serve. An empty
+    // trust list is complete — the dsh:// page is the app's own renderer.
+    connection = new HostConnectionService(hostCtx, [])
     // Assembly facts only this app can resolve: where its own renderer was
     // built. The desktop-app bundle republishes these as desktopRuntime for
     // the protocol carrier.
@@ -288,5 +305,8 @@ export async function bootDesktopHost(options: BootDesktopHostOptions): Promise<
   }
   await ctx.loader.await()
   process.stdout.write('dsh desktop: host ready\n')
-  return { ctx, shutdown }
+  // The setup callback above always runs inside boot(); fail loud rather
+  // than let a future refactor return a boot without the /api dispatcher.
+  if (connection === undefined) throw new Error('desktop host boot did not provide the connection service')
+  return { ctx, shutdown, connection }
 }

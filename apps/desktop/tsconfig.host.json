@@ -42,6 +42,9 @@
       "path": "../../packages/client/connection-ipc/tsconfig.host.json"
     },
     {
+      "path": "../../packages/client/connection/tsconfig.host.json"
+    },
+    {
       "path": "../../packages/host/apiproxy"
     },
     {

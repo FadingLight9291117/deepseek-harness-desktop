@@ -47,7 +47,15 @@ const ASSET_CONTENT_TYPES: Readonly<Record<string, string>> = {
 
 /** Facts the app supplies from its booted host tree and assembly knowledge. */
 export interface DesktopProtocolFacts {
-  /** The in-process gateway the /api route dispatches through. */
+  /**
+   * The /api unary dispatcher. The app composes this from the host tree's
+   * `connection` service (typert remote endpoints such as `commands/list`)
+   * with the in-process gateway as fallback — the same shared-handler
+   * layering the web transport mounts. Absent (minimal test compositions),
+   * the bare gateway handler serves /api.
+   */
+  api?: { fetch(request: Request): Promise<Response> }
+  /** The in-process gateway: event streams for the IPC push pumps. */
   apiProxy: ApiProxy
   /** The module registry backing the /plugins bundle route (absent when the modules row is not mounted). */
   modules: { clientPath(id: string): string | undefined; graph(): WebBootGraph } | undefined
@@ -92,14 +100,16 @@ async function assetResponse(distRoot: string, pathname: string): Promise<Respon
 
 /**
  * Build the `dsh://app` request→response function. `/api/**` rides the
- * in-process gateway (unary POSTs plus the SSE event streams), `/plugins`
- * serves the module registry's bundles, `/index.html` serves the built
- * renderer with `window.__DSH_BOOT__` injected, and everything else serves
- * the vite dist assets.
- * @param facts - gateway, module registry, and dist root.
+ * app-composed unary dispatcher (the connection RPC channels — typert
+ * remotes — over the in-process gateway fallback; unary POSTs plus the SSE
+ * event streams), `/plugins` serves the module registry's bundles,
+ * `/index.html` serves the built renderer with `window.__DSH_BOOT__`
+ * injected, and everything else serves the vite dist assets.
+ * @param facts - api dispatcher, gateway, module registry, and dist root.
  * @returns the handler for Electron's `protocol.handle`.
  */
 export function createDesktopProtocolHandler(facts: DesktopProtocolFacts): (request: Request) => Promise<Response> {
+  const apiDispatch = facts.api ?? toFetchHandler(facts.apiProxy)
   return async (request) => {
     const url = new URL(request.url)
     if (url.host !== 'app') return new Response('not found', { status: 404 })
@@ -118,7 +128,7 @@ export function createDesktopProtocolHandler(facts: DesktopProtocolFacts): (requ
         headers: request.headers,
         ...bodyText === undefined ? {} : { body: bodyText },
       })
-      return toFetchHandler(facts.apiProxy).fetch(rebuilt)
+      return apiDispatch.fetch(rebuilt)
     }
 
     if (facts.modules !== undefined && pathname.startsWith('/plugins/')) {
