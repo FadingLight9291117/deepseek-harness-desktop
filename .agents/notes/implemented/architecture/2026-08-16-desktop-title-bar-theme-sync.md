@@ -6,7 +6,7 @@ English | [中文](2026-08-16-desktop-title-bar-theme-sync.zh.md)
 
 ## Problem
 
-The desktop app's native window title bar follows the OS appearance only, while the app carries its own Light/Dark/System theme preference (the Appearance row in General settings, persisted as `ui-theme.preference` in `$DSH_HOME/settings.yaml`). When the app is set to dark while the OS is light — or vice versa — the title bar mismatches the content. The earlier immersive-title-bar attempt (custom drag strip, [2026-08-16-immersive-title-bar](2026-08-16-immersive-title-bar.md), later reverted) was rejected as ugly; the stock system bar stays, and it must follow the app's own theme.
+The desktop app's native window title bar follows the OS appearance only, while the app carries its own Light/Dark/System theme preference (the Appearance row in General settings, persisted as `ui-theme.preference` in `$DSH_HOME/settings.yaml`). When the app is set to dark while the OS is light — or vice versa — the title bar mismatches the content. The earlier immersive-title-bar attempt (custom drag strip, later reverted) was rejected as ugly; the stock system bar stays, and it must follow the app's own theme.
 
 ## Decision
 

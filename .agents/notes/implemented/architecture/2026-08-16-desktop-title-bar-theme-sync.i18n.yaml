@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-16-desktop-title-bar-theme-sync.md
-2026-08-16-desktop-title-bar-theme-sync.md: 908428d583f58a027c21622ad2861b968827cf41
-2026-08-16-desktop-title-bar-theme-sync.zh.md: 54c4631350b4fd13c703eb56d7e0ee634bffa293
+2026-08-16-desktop-title-bar-theme-sync.md: 68be73594ba6ffc38eb43cdba9adae49e7ba39c5
+2026-08-16-desktop-title-bar-theme-sync.zh.md: 6958557819c3d28982bdc97b25e939493bad51d0
