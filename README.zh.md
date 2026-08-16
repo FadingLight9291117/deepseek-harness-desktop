@@ -14,23 +14,10 @@ DeepSeek Harness Desktop 是基于 [DeepSeek Harness](https://github.com/deepsee
 
 ### 桌面应用（macOS）
 
-通过 Homebrew 安装：
-
-```sh
-brew tap FadingLight9291117/deepseek
-brew install --cask deepseek
-```
-
-或通过 npm 安装（将 `DeepSeek.app` 安装到 `~/Applications`；下载不携带隔离属性，首次启动不会触发 Gatekeeper 拦截）：
+通过 npm 安装（将 `DeepSeek.app` 安装到 `~/Applications`；下载不携带隔离属性，首次启动不会触发 Gatekeeper 拦截）：
 
 ```sh
 npm install -g deepseek-desktop
-```
-
-或从 [Releases](https://github.com/FadingLight9291117/deepseek-harness-desktop/releases) 页面下载最新的 `DeepSeek-darwin-<arch>.zip`，解压后（浏览器下载的 zip）清除隔离属性：
-
-```sh
-xattr -dr com.apple.quarantine DeepSeek.app
 ```
 
 桌面壳不打开 HTTP 端口：它通过本地 `dsh://` 协议提供同一套 UI，并从与 CLI 相同的 harness home 启动共享的 `desktop` profile。参见 [apps/desktop](apps/desktop/README.md)。

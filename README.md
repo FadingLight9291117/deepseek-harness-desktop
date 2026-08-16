@@ -14,23 +14,10 @@ The project is in _developer preview_ and iterating rapidly. **THERE WILL BE COM
 
 ### Desktop app (macOS)
 
-Install it with Homebrew:
-
-```sh
-brew tap FadingLight9291117/deepseek
-brew install --cask deepseek
-```
-
-or with npm (installs `DeepSeek.app` into `~/Applications`; the download skips the quarantine attribute, so Gatekeeper does not block first launch):
+Install it with npm (installs `DeepSeek.app` into `~/Applications`; the download skips the quarantine attribute, so Gatekeeper does not block first launch):
 
 ```sh
 npm install -g deepseek-desktop
-```
-
-or download the latest `DeepSeek-darwin-<arch>.zip` from the [Releases](https://github.com/FadingLight9291117/deepseek-harness-desktop/releases) page, unzip, and (for browser-downloaded zips) clear the quarantine attribute:
-
-```sh
-xattr -dr com.apple.quarantine DeepSeek.app
 ```
 
 The desktop shell opens no HTTP port: it serves the same UI over the local `dsh://` protocol and boots the shared `desktop` profile from the same harness home as the CLI. See [apps/desktop](apps/desktop/README.md).
