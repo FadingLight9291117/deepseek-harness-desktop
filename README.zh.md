@@ -1,4 +1,4 @@
-# DeepSeek Harness
+# DeepSeek Harness Desktop
 
 [English](README.md) | 中文
 
@@ -6,11 +6,38 @@ DeepSeek Harness（`dsh`）是由 [DeepSeek AI](https://deepseek.com) 开发的�
 
 它采用**一切皆插件**的架构，并由 [Cordis](https://github.com/cordiverse/cordis) 驱动，其设计参见论文 [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper)。
 
+项目提供两种使用形态：**桌面应用**（macOS 的主要分发方式）与基于浏览器的 Web UI。
+
 ## 开发者预览
 
 DeepSeek Harness 目前处于 _开发者预览_ 阶段，正在快速迭代。**未来将出现破坏兼容性的变更。**
 
 ## 运行
+
+### 桌面应用（macOS）
+
+打包好的桌面应用（`DeepSeek.app`）在 Electron 壳中运行完整的 harness UI，带沉浸式标题栏——无需 Node.js 或命令行。
+
+通过 Homebrew 安装：
+
+```sh
+brew tap FadingLight9291117/deepseek
+brew install --cask deepseek
+```
+
+或通过 npm 安装（将 `DeepSeek.app` 安装到 `~/Applications`；下载不携带隔离属性，首次启动不会触发 Gatekeeper 拦截）：
+
+```sh
+npm install -g deepseek-desktop
+```
+
+或从仓库的 Releases 页面下载最新的 `DeepSeek-darwin-<arch>.zip`，解压后（浏览器下载的 zip）清除隔离属性：
+
+```sh
+xattr -dr com.apple.quarantine DeepSeek.app
+```
+
+桌面壳不打开 HTTP 端口：它通过本地 `dsh://` 协议提供同一套 UI，并从与 CLI 相同的 harness home 启动共享的 `desktop` profile。参见 [apps/desktop](apps/desktop/README.md)。
 
 ### 通过 `npm` 运行
 

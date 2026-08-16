@@ -1,4 +1,4 @@
-# DeepSeek Harness
+# DeepSeek Harness Desktop
 
 English | [中文](README.zh.md)
 
@@ -6,11 +6,38 @@ DeepSeek Harness (`dsh`) is an open-source agent harness developed by [DeepSeek 
 
 It uses an architecture where **everything is a plugin**, and is powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper).
 
+The project ships two surfaces: a **desktop app** (the primary distribution for macOS) and a browser-based Web UI.
+
 ## Developer preview
 
 DeepSeek Harness is currently in _developer preview_ and is iterating rapidly. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
 
 ## Run
+
+### Desktop app (macOS)
+
+The packaged desktop app (`DeepSeek.app`) runs the full harness UI in an Electron shell with an immersive title bar — no Node.js or command line needed.
+
+Install it with Homebrew:
+
+```sh
+brew tap FadingLight9291117/deepseek
+brew install --cask deepseek
+```
+
+or with npm (installs `DeepSeek.app` into `~/Applications`; the download skips the quarantine attribute, so Gatekeeper does not block first launch):
+
+```sh
+npm install -g deepseek-desktop
+```
+
+or download the latest `DeepSeek-darwin-<arch>.zip` from the repository's Releases page, unzip, and (for browser-downloaded zips) clear the quarantine attribute:
+
+```sh
+xattr -dr com.apple.quarantine DeepSeek.app
+```
+
+The desktop shell opens no HTTP port: it serves the same UI over the local `dsh://` protocol and boots the shared `desktop` profile from the same harness home as the CLI. See [apps/desktop](apps/desktop/README.md).
 
 ### Run from `npm`
 
