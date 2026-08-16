@@ -7,7 +7,11 @@ function electronApi(options?: {
   openPath?: (path: string) => Promise<string>
   showOpenDialog?: (...args: unknown[]) => Promise<{ canceled: boolean; filePaths: string[] }>
   focusedWindow?: object | null
+  themeSource?: string
 }): ElectronNativeApi {
+  const nativeTheme = {
+    themeSource: options?.themeSource ?? 'system',
+  }
   return {
     shell: {
       openPath: options?.openPath ?? vi.fn().mockResolvedValue(''),
@@ -19,6 +23,7 @@ function electronApi(options?: {
       getFocusedWindow: () => options?.focusedWindow ?? null,
       getAllWindows: () => [],
     },
+    nativeTheme,
   } as unknown as ElectronNativeApi
 }
 
@@ -72,5 +77,14 @@ describe('createDesktopNativeRuntime', () => {
     controller.abort(new Error('connection closed'))
     await expect(selection).rejects.toThrow('connection closed')
     finishDialog?.({ canceled: false, filePaths: ['C:\\late'] })
+  })
+
+  it('writes the theme preference through to nativeTheme.themeSource', () => {
+    const electron = electronApi({ themeSource: 'system' })
+    const runtime = createDesktopNativeRuntime(electron)
+    runtime.theme.setThemePreference('dark')
+    expect(electron.nativeTheme.themeSource).toBe('dark')
+    runtime.theme.setThemePreference('system')
+    expect(electron.nativeTheme.themeSource).toBe('system')
   })
 })

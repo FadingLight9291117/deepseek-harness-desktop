@@ -3,9 +3,11 @@
  * plugin plus the bundle patch (`cordis.patch.yml`, declared by the
  * `dsh.bundle.patch` manifest field). The plugin owns the desktop-surface
  * glue: it republishes the app's assembly facts (the built renderer dist
- * root) as the `desktopRuntime` service the protocol carrier consumes, and
- * registers the harness-source and desktop-surface prompt sections. There is
- * no URL line: the desktop surface has no port to print.
+ * root) as the `desktopRuntime` service the protocol carrier consumes,
+ * registers the harness-source and desktop-surface prompt sections, and
+ * syncs the app's theme preference to the native window color scheme through
+ * the optional `desktopThemeSync` service. There is no URL line: the desktop
+ * surface has no port to print.
  * @module @deepseek-ai/dsh-desktop-app
  */
 
@@ -13,6 +15,10 @@ import { fileURLToPath } from 'node:url'
 import type { Context } from '@deepseek-ai/cordis'
 import { Service } from '@deepseek-ai/cordis'
 import { addHarnessSourceSection } from '@deepseek-ai/dsh-app-boot'
+import { settingsNamespace } from '@deepseek-ai/dsh-settings'
+import { THEME_SETTINGS_NAMESPACE, type ThemePreference, type ThemeSettings } from '@deepseek-ai/dsh-client-ui-theme'
+import type {} from '@deepseek-ai/dsh-settings'
+import type {} from '@deepseek-ai/dsh-settings/types'
 import type {} from '@deepseek-ai/dsh-system-prompt'
 
 declare module '@deepseek-ai/cordis' {
@@ -21,6 +27,8 @@ declare module '@deepseek-ai/cordis' {
     desktopApp: DesktopAppFacts
     /** Desktop runtime facts republished for transport rows. */
     desktopRuntime: DesktopRuntime
+    /** Native window color-scheme sync the desktop app provides under Electron. */
+    desktopThemeSync: DesktopThemeSync
   }
 }
 
@@ -38,6 +46,22 @@ export interface DesktopRuntime {
   /** Absolute directory containing the vite-built renderer (dist/). */
   distRoot: string
 }
+
+/**
+ * Native window color-scheme sync the desktop app provides under Electron.
+ * The theme preference arrives schema-validated from the settings service;
+ * 'system' keeps the OS's own appearance tracking intact.
+ */
+export interface DesktopThemeSync {
+  /**
+   * Apply the app's theme preference to the native window chrome.
+   * @param preference - the persisted Light/Dark/System preference.
+   */
+  setThemePreference(preference: ThemePreference): void
+}
+
+/** The settings namespace carrying the app's theme preference. */
+const THEME_NAMESPACE = settingsNamespace(THEME_SETTINGS_NAMESPACE)
 
 /**
  * Model-visible orientation for sessions created through the desktop app.
@@ -78,6 +102,21 @@ export class DesktopRuntimeProvider extends Service {
         text: () => desktopSurfacePrompt(),
       })
     })
+    // Native color-scheme sync: the app's theme preference rides the settings
+    // service (the ui-theme host row registers the namespace before this
+    // bundle layer activates), so the native title bar follows the persisted
+    // preference without any renderer round trip. Both hooks are optional —
+    // the headless boot provides neither, and the plugin still serves
+    // desktopRuntime alone.
+    const sync = ctx.get('desktopThemeSync')
+    if (sync !== undefined) {
+      ctx.on('settings/updated', (ns, next) => {
+        if (ns !== THEME_NAMESPACE) return
+        sync.setThemePreference((next as ThemeSettings).preference)
+      })
+      const section = ctx.get('settings')?.get(THEME_NAMESPACE) as ThemeSettings | undefined
+      if (section !== undefined) sync.setThemePreference(section.preference)
+    }
   }
 }
 

@@ -54,9 +54,9 @@ if (invocation.headless) {
  */
 async function runWindow(patchFiles: readonly string[], profileArgs: readonly string[]): Promise<void> {
   const electron = await import('electron') as unknown as Partial<typeof import('electron')>
-  const { app: electronApp, BrowserWindow, dialog, ipcMain, protocol, shell } = electron
+  const { app: electronApp, BrowserWindow, dialog, ipcMain, nativeTheme, protocol, shell } = electron
   if (electronApp === undefined || BrowserWindow === undefined || dialog === undefined
-    || ipcMain === undefined || protocol === undefined || shell === undefined) {
+    || ipcMain === undefined || nativeTheme === undefined || protocol === undefined || shell === undefined) {
     process.stderr.write('dsh desktop: not running under Electron; use --headless-boot for a windowless boot\n')
     process.exit(2)
   }
@@ -67,7 +67,7 @@ async function runWindow(patchFiles: readonly string[], profileArgs: readonly st
     privileges: { standard: true, secure: true, supportFetchAPI: true },
   }])
   const desktop = await bootDesktopHost(windowBootOptions(
-    { BrowserWindow, dialog, shell },
+    { BrowserWindow, dialog, shell, nativeTheme },
     patchFiles,
     profileArgs,
   ))

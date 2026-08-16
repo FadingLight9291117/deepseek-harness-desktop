@@ -12,7 +12,13 @@
       "path": "../../boot/app-boot"
     },
     {
+      "path": "../../client/ui-theme"
+    },
+    {
       "path": "../../core/system-prompt"
+    },
+    {
+      "path": "../../settings/settings"
     },
     {
       "path": "../../../vendor/cordis"

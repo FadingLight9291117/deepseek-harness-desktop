@@ -6,6 +6,8 @@ dsh 完整 Web UI 的 Electron 桌面壳。main 进程从 CLI 共用的 `DSH_HOM
 
 main 进程还通过 Electron 的跨平台 `shell.openPath` 与 `dialog.showOpenDialog` API 提供原生路径打开和目录选择。Cordis 接收与平台无关的闭包，所选路径保持原样传递，因此同一套集成无需在 provider 内设置平台分支，即可接受 macOS 路径、Windows 驱动器路径与 UNC 路径。
 
+窗口的原生标题栏跟随应用的外观设置（浅色/深色/系统，持久化在 harness settings 文档的 `ui-theme.preference`）：桌面 bundle 把偏好应用到 Electron 的 `nativeTheme.themeSource`，`system` 保持 OS 自身的外观跟踪。接线与其反馈环原理见[主题同步 note](../../.agents/notes/implemented/architecture/2026-08-16-desktop-title-bar-theme-sync.md)。
+
 ## 构建与运行
 
 ```sh
@@ -36,4 +38,5 @@ pnpm run package:desktop -- --skip-build  # reuse already-built workspace libs
 - v1 发行与 GUI CI 仅支持 macOS；原生适配器本身使用跨平台 Electron API，并保持 Windows 路径不变。
 - Electron 无法在调用方中止时以编程方式关闭已显示的目录面板；请求会结算并丢弃最终选择，而面板会保留到用户关闭或父窗口关闭。
 - 无托盘、系统通知、自动更新与安装器（v1 范围）。
+- `nativeTheme.themeSource` 是进程级的；v1 单窗口外壳不受影响，但未来的多窗口表面需决定逐窗口主题如何映射到它。
 - 应用 bundle 名为 DeepSeek，图标以 `apps/desktop/build/icon.icns` 提交（favicon 变更时重新生成）；窗口标题仍是 web UI 自己的。workspace 中的 node-pty 构建原样随包（与 dev 行为一致，无 Electron-ABI rebuild）；Developer ID 签名与公证留待后续。

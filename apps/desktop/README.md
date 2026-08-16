@@ -6,6 +6,8 @@ Electron desktop shell over the full dsh web UI. The main process boots the shar
 
 The main process also supplies native path opening and directory selection through Electron's cross-platform `shell.openPath` and `dialog.showOpenDialog` APIs. Cordis receives platform-neutral closures, and selected paths pass through unchanged, so the same integration accepts macOS paths, Windows drive paths, and UNC paths without platform branches in the provider.
 
+The window's native title bar follows the app's Appearance setting (Light/Dark/System, persisted as `ui-theme.preference` in the harness settings document): the desktop bundle applies the preference to Electron's `nativeTheme.themeSource`, where `system` keeps the OS's own appearance tracking. The wiring and its feedback-loop rationale live in the [theme-sync note](../../.agents/notes/implemented/architecture/2026-08-16-desktop-title-bar-theme-sync.md).
+
 ## Build and run
 
 ```sh
@@ -36,4 +38,5 @@ The pipeline stages the production closure with `pnpm deploy`, packages it with 
 - macOS only for v1 distribution and GUI CI; the native adapters themselves use cross-platform Electron APIs and preserve Windows paths unchanged.
 - Electron cannot programmatically close an already-visible directory panel on caller abort; the request settles and discards the eventual selection, while the panel remains until dismissal or parent-window closure.
 - No tray, system notifications, auto-update, or installers (v1 scope).
+- `nativeTheme.themeSource` is process-global; the v1 single-window shell is unaffected, but a future multi-window surface must decide how a per-window theme maps onto it.
 - The app bundle is named DeepSeek and carries the whale icon committed as `apps/desktop/build/icon.icns` (regenerate from the web favicon when it changes); the window title remains the web UI's own. The workspace's node-pty build ships as-is (dev parity, no Electron-ABI rebuild); Developer ID signing and notarization are deferred.

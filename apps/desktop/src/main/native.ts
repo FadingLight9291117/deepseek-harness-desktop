@@ -6,11 +6,12 @@
  */
 
 import type { OpenDialogOptions, OpenDialogReturnValue } from 'electron'
+import type { DesktopThemeSync } from '@deepseek-ai/dsh-desktop-app'
 import type { NativePathRuntime } from '@deepseek-ai/dsh-host-apiproxy'
 import type { ElectronDirectoryPickerRuntime } from '@deepseek-ai/dsh-host-directory-picker-electron'
 
 /** Electron main-process APIs consumed by the native adapters. */
-export type ElectronNativeApi = Pick<typeof import('electron'), 'BrowserWindow' | 'dialog' | 'shell'>
+export type ElectronNativeApi = Pick<typeof import('electron'), 'BrowserWindow' | 'dialog' | 'shell' | 'nativeTheme'>
 
 /** Native capability objects provided to the booted host tree. */
 export interface DesktopNativeRuntime {
@@ -18,6 +19,8 @@ export interface DesktopNativeRuntime {
   path: NativePathRuntime
   /** Native directory dialog consumed by the Electron picker provider. */
   directoryPicker: ElectronDirectoryPickerRuntime
+  /** Native color-scheme sync consumed by the desktop bundle's theme row. */
+  theme: DesktopThemeSync
 }
 
 /** Wait for a dialog result while settling the caller immediately on abort. */
@@ -75,6 +78,11 @@ export function createDesktopNativeRuntime(electron: ElectronNativeApi): Desktop
           : electron.dialog.showOpenDialog(parent, options)
         const result = await waitForDialog(operation, signal)
         return result.canceled ? null : result.filePaths[0] ?? null
+      },
+    },
+    theme: {
+      setThemePreference: (preference) => {
+        electron.nativeTheme.themeSource = preference
       },
     },
   }

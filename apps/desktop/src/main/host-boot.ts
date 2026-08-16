@@ -263,6 +263,7 @@ export async function bootDesktopHost(options: BootDesktopHostOptions): Promise<
     if (options.native !== undefined) {
       hostCtx.provide('nativePathRuntime', options.native.path)
       hostCtx.provide('electronDirectoryPickerRuntime', options.native.directoryPicker)
+      hostCtx.provide('desktopThemeSync', options.native.theme)
     }
     provideCmdline(hostCtx, {
       args: options.args,
