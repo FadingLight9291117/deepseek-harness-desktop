@@ -9,13 +9,6 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('dshDesktop', {
   /**
-   * The Node platform the app runs on ('darwin' | 'win32' | ...). The
-   * renderer uses it to enable the immersive title-bar strip and its
-   * platform-specific spacing (traffic lights vs window-control overlay).
-   * @type {string}
-   */
-  platform: process.platform,
-  /**
    * Subscribe to one host event stream (mux or host) as pushed frames.
    * @param {string} stream - 'mux' | 'host'.
    * @param {(frame: unknown) => void} onFrame - receives each full-form ServerRequest.

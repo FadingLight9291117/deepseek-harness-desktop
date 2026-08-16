@@ -7,8 +7,7 @@
   },
   "files": [
     "src/renderer/main.ts",
-    "src/renderer/node-module-stub.ts",
-    "src/renderer/css-modules.d.ts"
+    "src/renderer/node-module-stub.ts"
   ],
   "references": [
     {
@@ -16,9 +15,6 @@
     },
     {
       "path": "../../packages/client/modules"
-    },
-    {
-      "path": "../../packages/client/connection-ipc/tsconfig.client.json"
     }
   ]
 }

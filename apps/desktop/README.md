@@ -6,8 +6,6 @@ Electron desktop shell over the full dsh web UI. The main process boots the shar
 
 The main process also supplies native path opening and directory selection through Electron's cross-platform `shell.openPath` and `dialog.showOpenDialog` APIs. Cordis receives platform-neutral closures, and selected paths pass through unchanged, so the same integration accepts macOS paths, Windows drive paths, and UNC paths without platform branches in the provider.
 
-The window uses an immersive title bar: the system bar is hidden and the renderer's top strip (`#dsh-titlebar`, 38px, `-webkit-app-region: drag`) becomes the drag surface, with macOS traffic lights (hiddenInset) or the Windows overlay controls floating over it. The strip only renders when the preload bridge's `platform` arms `data-dsh-platform` on `<html>`; the web entry never sets it, so the browser surface keeps the system bar. Window chrome per platform lives in `desktopWindowChrome` and follows `nativeTheme` (see the [immersive title bar note](../../.agents/notes/implemented/architecture/2026-08-16-immersive-title-bar.md)).
-
 ## Build and run
 
 ```sh

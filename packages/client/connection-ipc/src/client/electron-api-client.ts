@@ -17,8 +17,6 @@ declare global {
   interface Window {
     /** The sandboxed preload bridge (absent when the preload did not load). */
     dshDesktop?: {
-      /** The Node platform the desktop app runs on ('darwin' | 'win32' | ...). */
-      platform: string
       subscribeStream(stream: 'mux' | 'host', onFrame: (frame: unknown) => void): () => void
     }
   }
