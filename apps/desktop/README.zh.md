@@ -6,6 +6,8 @@ dsh 完整 Web UI 的 Electron 桌面壳。main 进程从 CLI 共用的 `DSH_HOM
 
 main 进程还通过 Electron 的跨平台 `shell.openPath` 与 `dialog.showOpenDialog` API 提供原生路径打开和目录选择。Cordis 接收与平台无关的闭包，所选路径保持原样传递，因此同一套集成无需在 provider 内设置平台分支，即可接受 macOS 路径、Windows 驱动器路径与 UNC 路径。
 
+窗口使用沉浸式标题栏：隐藏系统标题栏，renderer 的顶部条（`#dsh-titlebar`，38px，`-webkit-app-region: drag`）成为拖拽表面，macOS 红绿灯（hiddenInset）或 Windows 覆盖层控制按钮悬浮其上。仅当 preload 桥的 `platform` 在 `<html>` 上武装 `data-dsh-platform` 时条才渲染；web 入口从不设置该属性，因此浏览器表面保留系统标题栏。按平台的窗口 chrome 位于 `desktopWindowChrome` 并跟随 `nativeTheme`（见[沉浸式标题栏笔记](../../.agents/notes/implemented/architecture/2026-08-16-immersive-title-bar.md)）。
+
 ## 构建与运行
 
 ```sh

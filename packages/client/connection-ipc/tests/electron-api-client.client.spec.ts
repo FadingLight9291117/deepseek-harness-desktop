@@ -15,6 +15,7 @@ function installBridge(): BridgeHarness {
   const unsubscribe = vi.fn()
   vi.stubGlobal('window', {
     dshDesktop: {
+      platform: 'darwin',
       subscribeStream: (stream: string, onFrame: (frame: unknown) => void) => {
         subscribed.push(stream)
         listener = onFrame

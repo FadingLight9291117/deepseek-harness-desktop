@@ -22,7 +22,7 @@ import { API_PATH } from '@deepseek-ai/dsh-client-connection'
 import { toFetchHandler } from '@deepseek-ai/dsh-host-apiproxy'
 import { parseDesktopArgs } from './args.ts'
 import { bootDesktopHost, rendererDistRoot } from './host-boot.ts'
-import { windowBootOptions } from './window-boot.ts'
+import { desktopWindowChrome, windowBootOptions } from './window-boot.ts'
 
 /** Sandboxed preload bundle selected across the nested source main/ and flattened built lib/ layouts. */
 const BUILT_PRELOAD_INDEX = fileURLToPath(new URL('./preload/index.cjs', import.meta.url))
@@ -54,7 +54,7 @@ if (invocation.headless) {
  */
 async function runWindow(patchFiles: readonly string[], profileArgs: readonly string[]): Promise<void> {
   const electron = await import('electron') as unknown as Partial<typeof import('electron')>
-  const { app: electronApp, BrowserWindow, dialog, ipcMain, protocol, shell } = electron
+  const { app: electronApp, BrowserWindow, dialog, ipcMain, nativeTheme, protocol, shell } = electron
   if (electronApp === undefined || BrowserWindow === undefined || dialog === undefined
     || ipcMain === undefined || protocol === undefined || shell === undefined) {
     process.stderr.write('dsh desktop: not running under Electron; use --headless-boot for a windowless boot\n')
@@ -122,9 +122,14 @@ async function runWindow(patchFiles: readonly string[], profileArgs: readonly st
       streamPumps.delete(key)
     }
   })
+  // Immersive title bar: hide the system bar and let the renderer's top
+  // strip carry the drag surface (macOS traffic lights / Windows overlay
+  // controls stay native). Colors follow the active theme.
+  const chrome = desktopWindowChrome(process.platform, nativeTheme?.shouldUseDarkColors === true)
   const window = new BrowserWindow({
     width: 1280,
     height: 800,
+    ...chrome,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -132,6 +137,16 @@ async function runWindow(patchFiles: readonly string[], profileArgs: readonly st
       preload: PRELOAD_INDEX,
     },
   })
+  if (nativeTheme !== undefined) {
+    // Re-sync overlay/base colors when the OS theme flips (Windows overlay
+    // buttons are drawn by the OS; the window background prevents flash).
+    nativeTheme.on('updated', () => {
+      if (window.isDestroyed()) return
+      const refreshed = desktopWindowChrome(process.platform, nativeTheme.shouldUseDarkColors)
+      window.setBackgroundColor(refreshed.backgroundColor)
+      if (refreshed.titleBarOverlay !== undefined) window.setTitleBarOverlay(refreshed.titleBarOverlay)
+    })
+  }
   window.webContents.on('did-fail-load', (_event, code, description, url) => {
     process.stderr.write(`dsh desktop: renderer failed to load ${url}: ${code} ${description}\n`)
   })
