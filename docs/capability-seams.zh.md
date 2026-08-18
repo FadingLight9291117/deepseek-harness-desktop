@@ -116,6 +116,7 @@ flowchart LR
   svc_nativePathRuntime["ctx.nativePathRuntime<br/>Native path handoff runtime"]
   svc_desktopRuntime["ctx.desktopRuntime<br/>Desktop runtime facts"]
   pkg_connection_ipc["connection-ipc"]
+  svc_desktopThemeSync["ctx.desktopThemeSync<br/>Native window theme sync"]
   pkg_goal["goal"]
   svc_goals["ctx.goals<br/>Same-session goal domain"]
   pkg_e2b["e2b"]
@@ -227,6 +228,7 @@ flowchart LR
   pkg_credentials_local --> svc_credentials
   pkg_desktop_app --> svc_desktopApp
   pkg_desktop_app --> svc_desktopRuntime
+  pkg_desktop_app --> svc_desktopThemeSync
   pkg_directory_picker --> svc_directoryPicker
   pkg_directory_picker_browse --> svc_directoryPicker
   pkg_directory_picker_electron --> svc_directoryPicker
@@ -328,6 +330,7 @@ flowchart LR
   svc_credentials --> pkg_llm_pi_ai
   svc_desktopApp --> pkg_desktop_app
   svc_desktopRuntime --> pkg_connection_ipc
+  svc_desktopThemeSync --> pkg_desktop_app
   svc_directoryPicker --> pkg_apiproxy
   svc_dynamicCordisRunner --> pkg_tool_cordis
   svc_e2b --> pkg_fs_e2b
@@ -464,6 +467,7 @@ flowchart LR
 | `ctx.electronDirectoryPickerRuntime` | `core` | `directory-picker-electron` | - | `directory-picker-electron` | - | 应用自有的 Electron 对话框交接；provider 在共享目录选择器接缝之后注册原生选择交互。 |
 | `ctx.nativePathRuntime` | `core` | `apiproxy` | - | `apiproxy` | - | 应用自有的 openPath/openTextFile 桌面交接；桌面壳之外缺失时使用 shell 命令默认实现。 |
 | `ctx.desktopRuntime` | `bundle` | [`desktop-app`](../packages/bundle/desktop-app) | - | `connection-ipc` | - | 为协议载体重发布应用自有的 dist 根目录，并拥有 desktop-surface 提示节。 |
+| `ctx.desktopThemeSync` | `bundle` | [`desktop-app`](../packages/bundle/desktop-app) | - | [`desktop-app`](../packages/bundle/desktop-app) | - | 应用自有的 Electron 配色方案同步；desktop-app bundle 将持久化的 ui-theme 偏好应用到原生窗口 chrome。 |
 | `ctx.goals` | `core` | [`goal`](../packages/goal/goal) | - | - | - | 从会话日志折叠带修订版本的目标状态，并将实时延续激活保留在进程本地。 |
 | `ctx.e2b` | `core` | [`e2b`](../packages/e2b/e2b) | - | [`fs-e2b`](../packages/e2b/fs-e2b), [`subprocess-e2b`](../packages/e2b/subprocess-e2b) | - | 拥有一个共享的 E2B SDK 句柄、远程工作目录和最终沙箱处置，使两个基础 E2B 提供方处于同一个 Linux 运行时中。 |
 | `ctx.subprocess` | `seam` | [`subprocess`](../packages/subprocess/subprocess) | [`subprocess-local`](../packages/subprocess/subprocess-local), [`subprocess-e2b`](../packages/e2b/subprocess-e2b) | [`bash-local`](../packages/shell/bash-local), [`bash-sandbox`](../packages/shell/bash-sandbox), [`terminal-bash`](../packages/terminal/terminal-bash), [`lsp-stdio`](../packages/lsp/lsp-stdio), [`subagent-acp`](../packages/subagent/subagent-acp), [`subagent-codex`](../packages/subagent/subagent-codex), [`subagent-claude-code`](../packages/subagent/subagent-claude-code) | - | Bash 执行器、PTY shell 后端、LSP Host，以及进程外 ACP、Codex 和 Claude Code subagent 后端都通过 ctx.subprocess 执行 spawn；该服务负责进程坐标、进程树／会话生命周期、stdio 处置、终端机制和 kill 升级。 |

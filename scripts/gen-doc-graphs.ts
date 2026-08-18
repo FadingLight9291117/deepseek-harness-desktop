@@ -380,6 +380,14 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Republishes the app-owned dist root for the protocol carrier and owns the desktop-surface prompt section.',
   },
   {
+    key: 'desktopThemeSync',
+    pkg: 'desktop-app',
+    title: 'Native window theme sync',
+    mode: 'bundle',
+    consumers: ['desktop-app'],
+    note: 'The app-owned Electron color-scheme sync; the desktop-app bundle applies the persisted ui-theme preference to the native window chrome.',
+  },
+  {
     key: 'goals',
     pkg: 'goal',
     title: 'Same-session goal domain',

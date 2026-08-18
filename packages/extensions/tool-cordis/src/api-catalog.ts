@@ -364,6 +364,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'completion after the encoded raster has been fully decoded.',
       },
       {
+        signature: 'async saveImages(inputs: readonly SaveImageAttachment[]): Promise<readonly ImageAttachmentRef[]>',
+        description: 'Validate one ordered image batch before committing any member. Validation failures start no writes; storage failures return no partial references, although already published content-addressed objects may stay unreachable until a future retention policy collects them.',
+        parameters: [{ name: 'inputs', description: 'encoded images in their owning message order.' }],
+        returns: 'durable references in the exact input order.',
+      },
+      {
         signature: 'abstract saveImage(input: SaveImageAttachment): Promise<ImageAttachmentRef>',
         description: 'Validate and durably commit one image before its owning session event is appended.',
         parameters: [{ name: 'input', description: 'encoded bytes, declared media type, and optional display name.' }],
@@ -546,6 +552,18 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         signature: 'distRoot: string',
         description: 'Absolute directory containing the vite-built renderer (dist/).',
         parameters: [],
+      },
+    ],
+  },
+  {
+    key: 'desktopThemeSync',
+    summary: 'Native window color-scheme sync the desktop app provides under Electron.',
+    description: 'Native window color-scheme sync the desktop app provides under Electron. The theme preference arrives schema-validated from the settings service; \'system\' keeps the OS\'s own appearance tracking intact.',
+    methods: [
+      {
+        signature: 'setThemePreference(preference: ThemePreference): void',
+        description: 'Apply the app\'s theme preference to the native window chrome.',
+        parameters: [{ name: 'preference', description: 'the persisted Light/Dark/System preference.' }],
       },
     ],
   },
@@ -3640,6 +3658,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface RedactedSecret {\n    path: string[];\n    set: boolean;\n}',
   },
   {
+    name: 'ReplayEnvelope',
+    declaration: 'export interface ReplayEnvelope {\n    response: unknown;\n    blocks?: readonly unknown[];\n}',
+  },
+  {
     name: 'RequestContext',
     declaration: 'export interface RequestContext {\n    provider: string;\n    model: string;\n    contextWindow?: number;\n}',
   },
@@ -4153,7 +4175,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'StreamChunk',
-    declaration: 'export type StreamChunk = {\n    type: \'block-start\';\n    index: number;\n    blockType: ContentBlockType;\n} | {\n    type: \'text-delta\';\n    index: number;\n    text: string;\n} | {\n    type: \'reasoning-delta\';\n    index: number;\n    text: string;\n} | {\n    type: \'tool-call-delta\';\n    index: number;\n    id: CallId;\n    name?: string;\n    argumentsDelta: string;\n} | {\n    type: \'block-end\';\n    index: number;\n    block: ContentBlock;\n} | {\n    type: \'usage\';\n    usage: TokenUsage;\n} | {\n    type: \'finish\';\n    reason: FinishReason;\n    replayState?: unknown;\n};',
+    declaration: 'export type StreamChunk = {\n    type: \'block-start\';\n    index: number;\n    blockType: ContentBlockType;\n} | {\n    type: \'text-delta\';\n    index: number;\n    text: string;\n} | {\n    type: \'reasoning-delta\';\n    index: number;\n    text: string;\n} | {\n    type: \'tool-call-delta\';\n    index: number;\n    id: CallId;\n    name?: string;\n    argumentsDelta: string;\n} | {\n    type: \'block-end\';\n    index: number;\n    block: ContentBlock;\n} | {\n    type: \'usage\';\n    usage: TokenUsage;\n} | {\n    type: \'finish\';\n    reason: FinishReason;\n    replayState?: ReplayEnvelope;\n};',
   },
   {
     name: 'SubagentCapabilities',
@@ -4382,6 +4404,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'TerminalWaitReason',
     declaration: 'export type TerminalWaitReason = \'stdin_read\' | \'inferred_idle\' | \'timeout\' | \'session_exit\';',
+  },
+  {
+    name: 'ThemePreference',
+    declaration: 'export type ThemePreference = typeof THEME_PREFERENCES[number];',
   },
   {
     name: 'TodoItem',

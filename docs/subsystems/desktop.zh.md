@@ -26,7 +26,7 @@ Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnp
 
 Assembly facts the app owns: where the built renderer lives.
 
-Source: [`packages/bundle/desktop-app/src/index.ts:31`](../../packages/bundle/desktop-app/src/index.ts)
+Source: [`packages/bundle/desktop-app/src/index.ts:39`](../../packages/bundle/desktop-app/src/index.ts)
 
 <a id="ctxdesktopruntime--desktopruntime"></a>
 
@@ -34,7 +34,23 @@ Source: [`packages/bundle/desktop-app/src/index.ts:31`](../../packages/bundle/de
 
 Runtime values the desktop carrier and surface rows consume.
 
-Source: [`packages/bundle/desktop-app/src/index.ts:37`](../../packages/bundle/desktop-app/src/index.ts)
+Source: [`packages/bundle/desktop-app/src/index.ts:45`](../../packages/bundle/desktop-app/src/index.ts)
+
+<a id="ctxdesktopthemesync--desktopthemesync"></a>
+
+### `ctx.desktopThemeSync` — `DesktopThemeSync`
+
+Native window color-scheme sync the desktop app provides under Electron. The theme preference arrives schema-validated from the settings service; 'system' keeps the OS's own appearance tracking intact.
+
+```ts cordis-catalog
+/**
+ * Apply the app's theme preference to the native window chrome.
+ * @param preference - the persisted Light/Dark/System preference.
+ */
+setThemePreference(preference: ThemePreference): void
+```
+
+Source: [`packages/bundle/desktop-app/src/index.ts:55`](../../packages/bundle/desktop-app/src/index.ts)
 
 <a id="ctxelectrondirectorypickerruntime--electrondirectorypickerruntime"></a>
 

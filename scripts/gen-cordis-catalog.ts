@@ -68,6 +68,7 @@ export const SERVICE_PAGE: Record<string, string> = {
   directoryPicker: 'workspace.md',
   desktopApp: 'desktop.md',
   desktopRuntime: 'desktop.md',
+  desktopThemeSync: 'desktop.md',
   electronDirectoryPickerRuntime: 'desktop.md',
   nativePathRuntime: 'desktop.md',
   dynamicCordisRunner: 'extensions.md',
@@ -564,6 +565,7 @@ export const TYPE_LINK_EXEMPTIONS: Readonly<Record<string, string>> = {
   TypertDisposer: 'Typert lifecycle contract is owned by packages/typert/protocol/README.md',
   InvokeRemoteRequest: 'gateway invocation contract is owned by packages/api/gateway/README.md',
   LocaleDict: 'service-local dictionary fields are owned by packages/client/i18n/src/index.ts',
+  ThemePreference: 'service-local theme preference union is owned by packages/client/ui-theme/src/theme-settings.ts',
   ThemeTokens: 'service-local token dictionary is owned by packages/client/ui-theme/src/index.ts',
   Translate: 'service-local bound translator is owned by packages/client/i18n/src/index.ts',
   WebUpgradeRoute:

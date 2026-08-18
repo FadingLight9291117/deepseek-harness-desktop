@@ -114,6 +114,7 @@ flowchart LR
   svc_nativePathRuntime["ctx.nativePathRuntime<br/>Native path handoff runtime"]
   svc_desktopRuntime["ctx.desktopRuntime<br/>Desktop runtime facts"]
   pkg_connection_ipc["connection-ipc"]
+  svc_desktopThemeSync["ctx.desktopThemeSync<br/>Native window theme sync"]
   pkg_goal["goal"]
   svc_goals["ctx.goals<br/>Same-session goal domain"]
   pkg_e2b["e2b"]
@@ -225,6 +226,7 @@ flowchart LR
   pkg_credentials_local --> svc_credentials
   pkg_desktop_app --> svc_desktopApp
   pkg_desktop_app --> svc_desktopRuntime
+  pkg_desktop_app --> svc_desktopThemeSync
   pkg_directory_picker --> svc_directoryPicker
   pkg_directory_picker_browse --> svc_directoryPicker
   pkg_directory_picker_electron --> svc_directoryPicker
@@ -326,6 +328,7 @@ flowchart LR
   svc_credentials --> pkg_llm_pi_ai
   svc_desktopApp --> pkg_desktop_app
   svc_desktopRuntime --> pkg_connection_ipc
+  svc_desktopThemeSync --> pkg_desktop_app
   svc_directoryPicker --> pkg_apiproxy
   svc_dynamicCordisRunner --> pkg_tool_cordis
   svc_e2b --> pkg_fs_e2b
@@ -462,6 +465,7 @@ flowchart LR
 | `ctx.electronDirectoryPickerRuntime` | `core` | `directory-picker-electron` | - | `directory-picker-electron` | - | The app-owned Electron dialog handoff; the provider registers the native picker interaction behind the shared directory-picker seam. |
 | `ctx.nativePathRuntime` | `core` | `apiproxy` | - | `apiproxy` | - | App-owned desktop handoff for openPath/openTextFile; absent outside a desktop shell, where the shell-command defaults apply. |
 | `ctx.desktopRuntime` | `bundle` | [`desktop-app`](../packages/bundle/desktop-app) | - | `connection-ipc` | - | Republishes the app-owned dist root for the protocol carrier and owns the desktop-surface prompt section. |
+| `ctx.desktopThemeSync` | `bundle` | [`desktop-app`](../packages/bundle/desktop-app) | - | [`desktop-app`](../packages/bundle/desktop-app) | - | The app-owned Electron color-scheme sync; the desktop-app bundle applies the persisted ui-theme preference to the native window chrome. |
 | `ctx.goals` | `core` | [`goal`](../packages/goal/goal) | - | - | - | Folds revisioned objective state from the session log and keeps live continuation activation process-local. |
 | `ctx.e2b` | `core` | [`e2b`](../packages/e2b/e2b) | - | [`fs-e2b`](../packages/e2b/fs-e2b), [`subprocess-e2b`](../packages/e2b/subprocess-e2b) | - | Owns one shared E2B SDK handle, remote working directory, and final sandbox disposition so both fundamental E2B providers inhabit the same Linux runtime. |
 | `ctx.subprocess` | `seam` | [`subprocess`](../packages/subprocess/subprocess) | [`subprocess-local`](../packages/subprocess/subprocess-local), [`subprocess-e2b`](../packages/e2b/subprocess-e2b) | [`bash-local`](../packages/shell/bash-local), [`bash-sandbox`](../packages/shell/bash-sandbox), [`terminal-bash`](../packages/terminal/terminal-bash), [`lsp-stdio`](../packages/lsp/lsp-stdio), [`subagent-acp`](../packages/subagent/subagent-acp), [`subagent-codex`](../packages/subagent/subagent-codex), [`subagent-claude-code`](../packages/subagent/subagent-claude-code) | - | The bash executors, the PTY shell backend, the LSP host, and the out-of-process ACP, Codex, and Claude Code subagent backends spawn through ctx.subprocess; the service owns process coordinates, tree/session lifetime, stdio dispositions, terminal mechanics, and kill escalation. |

@@ -2,11 +2,11 @@
 
 English | [中文](index.zh.md)
 
-Start the Web UI through the [root README](../../../README.md#run); the command prints its URL. This guide begins after that server is running. The `dsh` process uses its invoking directory as the default filesystem location, but a fresh Web UI has no selected workspace until you add one.
+Start the Web UI through the [root README](../../../README.md#web-ui-via-cli); the command prints its URL. This guide begins after that server is running. The `dsh` process uses its invoking directory as the default filesystem location, but a fresh Web UI has no selected workspace until you add one.
 
 ## Configure a model
 
-Open **Settings → Models**, enter a DeepSeek API key, and save it. The model route becomes usable immediately without restarting the server.
+Open **Settings → Models**, enter a [DeepSeek API key](https://platform.deepseek.com/), and save it. The model route becomes usable immediately without restarting the server.
 
 The [model configuration guide](./providers.md) covers other providers and custom OpenAI-compatible endpoints.
 
