@@ -21,7 +21,7 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: /^node:module$/, replacement: src('./src/renderer/node-module-stub.ts') },
-      { find: /^@deepseek-ai\/dsh-client-web$/, replacement: src('../../packages/client/web/src/boot.tsx') },
+      { find: /^@deepseek-ai\/dsh-client-web$/, replacement: src('../../packages/client/web/src/index.ts') },
       { find: /^@deepseek-ai\/dsh-client-ui-renderer$/, replacement: src('../../packages/client/ui-renderer/src/index.ts') },
       { find: /^@deepseek-ai\/dsh-client-ui-slots$/, replacement: src('../../packages/client/ui-slots/src/index.ts') },
       { find: /^@deepseek-ai\/dsh-client-ui-primitives$/, replacement: src('../../packages/client/ui-primitives/src/index.ts') },
