@@ -64,8 +64,9 @@ Host 与 Client 保持两个 aggregate program，是因为两侧在相同键下�
 根构建按生成依赖排序：
 
 ```sh
-tsc -b tsconfig.host.json
+tsc -b tsconfig.host.json # bootstrap
 tsdown --env.DSH_BUILD_FACE host
+tsc -b tsconfig.host.json # strict
 tsc -b tsconfig.client.json
 tsdown --env.DSH_BUILD_FACE client
 pnpm run build:web
@@ -73,7 +74,7 @@ pnpm run build:web
 
 两次 tsdown 都使用同一组完整 workspace 匹配，不扫描构建产物来发现 Client 包，也不维护 Host/Client 包过滤表。包内 tsdown 配置根据 `DSH_BUILD_FACE` 决定当前阶段的入口：普通 Client 插件在 Client 阶段同时生成 Node loader 与 browser bundle；`api-remotes` 通过 `hostPhase: true` 提前生成 Host 入口，再在 Client 阶段只生成 browser bundle。tsdown 只消费 `lib/types` 中由前置 tsc 发射的 JavaScript。
 
-Typert 只在 Host tsdown 中以 `tsconfig.host.json` 为种子运行。它分析 Host 类型并生成 Host 反射产物及 Host-for-Client Remote 投影；Client tsdown 不启动 Typert。`pnpm run typecheck` 因此先执行完整 Host lib 阶段，再运行 Client tsc；`pnpm run build` 继续执行 Client tsdown 和 Web 构建。该顺序的决策记录见 [API Remotes 生成约定构建 Note](../.agents/notes/implemented/process/2026-08-08-api-remotes-generated-contract-build.md)。
+Typert 只在 Host tsdown 中以 `tsconfig.host.json` 为种子运行。首次 Host tsc 会发射 Host JavaScript，但可能报告经由 Client 依赖进入的 `/remote` 声明尚未解析；Host tsdown 生成这些声明，第二次 Host tsc 必须成功，Client tsc 才能开始。Client tsdown 不启动 Typert。`pnpm run typecheck` 因此先执行完整 Host lib 阶段，再运行 Client tsc；`pnpm run build` 继续执行 Client tsdown 和 Web 构建。该顺序的决策记录见 [API Remotes 生成约定构建 Note](../.agents/notes/implemented/process/2026-08-08-api-remotes-generated-contract-build.md)。
 
 `pnpm run build` 会内联调用方精确的 `DSH_CLIENT_*` 环境；未设置时不使用任何公开 client 值。`pnpm run build:official` 是与 CI 和 release 产物构建等价的跨平台本地命令。每次完整构建成功后都会写入一份被 gitignore 的记录，把这些值与 Vite 输出及动态 client bundle 绑定；release 打包和 built Web 测试会拒绝缺少记录或被后续局部构建改动的产物。
 

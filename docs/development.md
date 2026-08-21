@@ -64,8 +64,9 @@ Host and Client stay two aggregate programs because both sides declaration-merge
 The root build follows the generated dependency order:
 
 ```sh
-tsc -b tsconfig.host.json
+tsc -b tsconfig.host.json # bootstrap
 tsdown --env.DSH_BUILD_FACE host
+tsc -b tsconfig.host.json # strict
 tsc -b tsconfig.client.json
 tsdown --env.DSH_BUILD_FACE client
 pnpm run build:web
@@ -73,7 +74,7 @@ pnpm run build:web
 
 Both tsdown passes use the same complete workspace match. They neither scan build artifacts to discover Client packages nor maintain a Host/Client package filter list. Package-local tsdown configs select entries for the current phase through `DSH_BUILD_FACE`: an ordinary Client plugin produces both its Node loader and browser bundle during the Client phase; `api-remotes` uses `hostPhase: true` to produce its Host entry early and only its browser bundle during the Client phase. Tsdown consumes only the JavaScript emitted to `lib/types` by the preceding tsc phase.
 
-Typert runs only during Host tsdown, seeded by `tsconfig.host.json`. It analyzes Host types and generates both Host reflection artifacts and the Host-for-Client Remote projection; Client tsdown does not start Typert. Consequently, `pnpm run typecheck` runs the complete Host lib phase before Client tsc, while `pnpm run build` continues through Client tsdown and the Web build. The [API Remotes generated-contract build note](../.agents/notes/implemented/process/2026-08-08-api-remotes-generated-contract-build.md) records this ordering decision.
+Typert runs only during Host tsdown, seeded by `tsconfig.host.json`. The first Host tsc pass emits Host JavaScript but may report unresolved `/remote` declarations reached through Client dependencies; Host tsdown generates those declarations, and the second Host tsc pass must succeed before Client tsc starts. Client tsdown does not start Typert. Consequently, `pnpm run typecheck` runs the complete Host lib phase before Client tsc, while `pnpm run build` continues through Client tsdown and the Web build. The [API Remotes generated-contract build note](../.agents/notes/implemented/process/2026-08-08-api-remotes-generated-contract-build.md) records this ordering decision.
 
 `pnpm run build` embeds the caller's exact `DSH_CLIENT_*` environment and uses no public client values when none are set. `pnpm run build:official` is the cross-platform local equivalent of the CI and release artifact build. Each successful complete build writes a gitignored record that binds those values to the Vite output and dynamic client bundles; release packing and built Web tests reject a missing record or artifacts changed by a later partial build.
 
