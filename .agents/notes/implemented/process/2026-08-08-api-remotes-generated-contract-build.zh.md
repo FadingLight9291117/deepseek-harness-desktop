@@ -12,17 +12,18 @@ Host 的 `@Remote` 方法需要先由 Typert 生成 `/remote` 声明和运行时
 
 ## 决策
 
-根构建先完成 Host tsc 和 Host tsdown，由 Host tsdown 运行 Typert 并生成 Remote Client 约定；随后完成 Client tsc、Client tsdown 和 Web 构建：
+根构建先以 bootstrap 方式运行 Host tsc，再由 Host tsdown 运行 Typert 并生成 Remote Client 约定，然后严格重跑 Host tsc；随后完成 Client tsc、Client tsdown 和 Web 构建：
 
 ~~~text
-tsc -b tsconfig.host.json
+tsc -b tsconfig.host.json # bootstrap
 tsdown --env.DSH_BUILD_FACE host
+tsc -b tsconfig.host.json # strict
 tsc -b tsconfig.client.json
 tsdown --env.DSH_BUILD_FACE client
 Vite Web build
 ~~~
 
-`build:lib:host` 负责前两步，`build:lib:client` 负责中间两步，`build:web` 最后运行。`typecheck` 也必须先执行完整 Host lib 阶段，因为 Client tsc 需要 Host tsdown 生成的声明；它不需要运行 Client tsdown 或 Web build。
+`build:lib:host` 负责前三步，`build:lib:client` 负责中间两步，`build:web` 最后运行。bootstrap 可能报告经由 Client 依赖进入的生成 `/remote` 声明尚未存在，但它发射的 Host JavaScript 让 Host tsdown 可以生成声明；严格重跑必须成功。`typecheck` 也必须先执行完整 Host lib 阶段，因为 Client tsc 需要 Host tsdown 生成的声明；它不需要运行 Client tsdown 或 Web build。
 
 每个 tsc 阶段都是唯一的 TypeScript 编译器路径，负责向 `lib/types` 发射 JavaScript、声明和增量状态。tsdown 只读取这些 JavaScript 并生成发布 bundle，不读取源码，也不生成声明。
 
@@ -73,7 +74,7 @@ Host 与 Client 两次 tsdown 都接收 `vendor/*`、`packages/*/*` 和 `apps/cl
 
 ## 后果
 
-干净构建成为顺序正确性的权威验证：没有任何既存 `/remote` 产物时，Host tsc 必须先成功，Host tsdown 必须生成约定，随后 Client tsc、Client tsdown 与 Web build 必须成功。任何阶段都不得把产物写进 `src`。
+干净构建成为顺序正确性的权威验证：没有任何既存 `/remote` 产物时，bootstrap Host tsc 发射 Host JavaScript，Host tsdown 生成约定，随后严格 Host tsc、Client tsc、Client tsdown 与 Web build 必须成功。任何阶段都不得把产物写进 `src`。
 
 [TypeScript 构建配置 Note](2026-06-17-ts-build-config.md)确定的 tsc-first 职责保持不变，但其单次全图 tsc 后再打包的命令形态由本文的有序阶段取代。[双 aggregate solution Note](2026-07-22-tsconfig-solution-root-two-aggregates.md)确定的普通 package 单 aggregate 规则保持不变，本文只为 `api/remotes` 建立一个显式例外。
 

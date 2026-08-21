@@ -1,7 +1,7 @@
 {
   "name": "@deepseek-ai/dsh-desktop-app",
   "description": "The dsh desktop-surface bundle: the patch layer that removes the HTTP transport over dsh-web-app plus the desktop runtime glue plugin (dist root, desktop-surface prompt, native theme sync)",
-  "version": "0.1.0-rc.5",
+  "version": "0.1.0-rc.8",
   "publishConfig": {
     "access": "public"
   },

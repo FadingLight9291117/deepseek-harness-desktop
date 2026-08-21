@@ -44,8 +44,13 @@ interface PluginInvocation {
   args: string[]
 }
 
+/** Open the installed macOS Desktop application. */
+interface DesktopInvocation {
+  mode: 'desktop'
+}
+
 /** The resolved `dsh` invocation. Help, version, and errors exit inside {@link parseDshArgs}. */
-export type DshInvocation = ProfileInvocation | DumpConfigInvocation | PluginInvocation
+export type DshInvocation = ProfileInvocation | DumpConfigInvocation | PluginInvocation | DesktopInvocation
 
 /** Launcher flags shared by the default command and the `web` alias. */
 interface BootOptions {
@@ -178,6 +183,12 @@ export function parseDshArgs(argv: readonly string[], version: string): DshInvoc
       if (options.profile === '') program.error('error: --profile needs a name')
       if (args.length === 0) program.error('error: plugin needs pnpm arguments to forward (e.g. add <package>)')
       resolved = { mode: 'plugin', profile: options.profile, args }
+    })
+
+  program.command('desktop').description('open the installed DeepSeek Desktop application')
+    .action(() => {
+      rejectParentOptions('desktop')
+      resolved = { mode: 'desktop' }
     })
 
   try {

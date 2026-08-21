@@ -20,7 +20,7 @@ DeepSeek Harness Desktop 是基于 [DeepSeek Harness](https://github.com/deepsee
 npm install -g deepseek-desktop
 ```
 
-桌面壳不打开 HTTP 端口：它通过本地 `dsh://` 协议提供同一套 UI，并从与 CLI 相同的 harness home 启动共享的 `desktop` profile。参见 [apps/desktop](apps/desktop/README.md)。
+安装也会将 `dsh` 添加到 PATH；使用 `dsh desktop` 启动已安装的应用。桌面壳不打开 HTTP 端口：它通过本地 `dsh://` 协议提供同一套 UI，并从与 CLI 相同的 harness home 启动共享的 `desktop` profile。参见 [apps/desktop](apps/desktop/README.md)。
 
 ### 通过 CLI 运行 Web UI
 
@@ -30,7 +30,7 @@ npm install -g deepseek-desktop
 npx @deepseek-ai/dsh web
 ```
 
-该命令会启动 Web UI，默认地址为 `http://127.0.0.1:3080`。详见 [Web UI 指南](docs/user/guide/index.md)。
+该命令默认会在 `http://127.0.0.1:3080` 启动 Web UI，本机启动时还会用默认浏览器打开页面。通过 SSH 启动时只打印宿主机 URL，因为本地转发地址由 SSH 客户端或编辑器持有。传入 `--no-open` 可仅运行服务器而不打开浏览器。详见 [Web UI 指南](docs/user/guide/index.md)。
 
 ## 从源码运行
 
@@ -41,6 +41,8 @@ pnpm install
 pnpm run build
 pnpm dsh web
 ```
+
+`pnpm run build` 会准备仓库产物。`pnpm dsh web` 会直接使用这些已构建产物，不会重新构建。
 
 ## 反馈与支持
 

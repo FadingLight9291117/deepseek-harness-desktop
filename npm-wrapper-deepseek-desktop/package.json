@@ -1,6 +1,6 @@
 {
   "name": "deepseek-desktop",
-  "version": "0.1.0-rc.9",
+  "version": "0.1.0-rc.10",
   "description": "Installer for the DeepSeek desktop app (dsh desktop, arm64). Downloads the release zip and installs DeepSeek.app into ~/Applications.",
   "license": "MIT",
   "os": [
@@ -8,13 +8,13 @@
   ],
   "files": [
     "scripts/install.js",
+    "scripts/dsh.js",
     "README.md"
   ],
   "scripts": {
     "postinstall": "node scripts/install.js"
   },
   "bin": {
-    "deepseek-desktop": "scripts/install.js",
     "dsh": "scripts/dsh.js"
   },
   "keywords": [
