@@ -57,6 +57,10 @@ describe('parseDshArgs', () => {
       .toEqual({ mode: 'plugin', profile: 'tui', args: ['add', '--save-dev', 'x'] })
   })
 
+  it('routes the Desktop application launcher', () => {
+    expect(parse(['desktop'])).toEqual({ mode: 'desktop' })
+  })
+
   it('routes profile and web config dumps', () => {
     expect(parse(['--profile', 'web', '--dump-config']))
       .toEqual({ mode: 'dump-config', profile: 'web', defaultOnly: false, patches: [] })
@@ -92,6 +96,8 @@ describe('parseDshArgs', () => {
     // invocation's boot would mislead.
     expect(exitCode(['web', '--dump-config', '--port', '8080'])).toBe(1)
     expect(exitCode(['--profile', 'web', '--dump-config', '-h'])).toBe(1)
+    expect(exitCode(['desktop', '--profile', 'web'])).toBe(1)
+    expect(exitCode(['desktop', '--unexpected'])).toBe(1)
     expect(exitCode(['plugin', 'add', 'x'])).toBe(1) // --profile required
     expect(exitCode(['plugin', '--profile', 'tui'])).toBe(1) // nothing to forward
     expect(exitCode(['plugin', '--profile', ''])).toBe(1)

@@ -20,7 +20,7 @@ DeepSeek Harness Desktop 是基于 [DeepSeek Harness](https://github.com/deepsee
 npm install -g deepseek-desktop
 ```
 
-桌面壳不打开 HTTP 端口：它通过本地 `dsh://` 协议提供同一套 UI，并从与 CLI 相同的 harness home 启动共享的 `desktop` profile。参见 [apps/desktop](apps/desktop/README.md)。
+安装也会将 `dsh` 添加到 PATH；使用 `dsh desktop` 启动已安装的应用。桌面壳不打开 HTTP 端口：它通过本地 `dsh://` 协议提供同一套 UI，并从与 CLI 相同的 harness home 启动共享的 `desktop` profile。参见 [apps/desktop](apps/desktop/README.md)。
 
 ### 通过 CLI 运行 Web UI
 

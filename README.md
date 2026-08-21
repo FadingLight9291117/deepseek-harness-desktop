@@ -20,7 +20,7 @@ Install it with npm (installs `DeepSeek.app` into `~/Applications`; the download
 npm install -g deepseek-desktop
 ```
 
-The desktop shell opens no HTTP port: it serves the same UI over the local `dsh://` protocol and boots the shared `desktop` profile from the same harness home as the CLI. See [apps/desktop](apps/desktop/README.md).
+The installation also adds `dsh` to PATH; launch the installed app with `dsh desktop`. The desktop shell opens no HTTP port: it serves the same UI over the local `dsh://` protocol and boots the shared `desktop` profile from the same harness home as the CLI. See [apps/desktop](apps/desktop/README.md).
 
 ### Web UI via CLI
 

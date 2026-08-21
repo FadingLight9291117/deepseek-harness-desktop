@@ -14,11 +14,13 @@ The `postinstall` hook downloads `DeepSeek-darwin-arm64.zip`, verifies its SHA-2
 
 ## Usage
 
-The installer also exposes a CLI:
+The installation exposes the CLI launcher:
 
 ```sh
-deepseek-desktop
+dsh desktop
 ```
+
+The `dsh` command is forwarded to the installed `@deepseek-ai/dsh` dependency. The installer itself has no global command after installation.
 
 ## Overrides
 

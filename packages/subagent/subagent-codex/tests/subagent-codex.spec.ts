@@ -23,6 +23,7 @@ import {
   CODEX_PERMISSION_MODES,
   DEFAULT_CODEX_PERMISSION_MODE,
   codexAppServerArgv,
+  codexAppServerEnv,
   DEFAULT_DISPOSE_GRACE_MS,
   disposeCodexChild,
   startCodexRun,
@@ -358,6 +359,15 @@ function expectedFailureDiagnostic(
 }
 
 describe('task admission and package contracts', () => {
+  it('uses Electron Node mode only when Electron launches the package-local wrapper', () => {
+    const env = { OPENAI_API_KEY: 'fake' }
+    expect(codexAppServerEnv(env, undefined)).toBe(env)
+    expect(codexAppServerEnv(env, '39.0.0')).toEqual({
+      OPENAI_API_KEY: 'fake',
+      ELECTRON_RUN_AS_NODE: '1',
+    })
+  })
+
   it('ships one independently installable provider-only Bundle patch', () => {
     const root = fileURLToPath(new URL('..', import.meta.url))
     const manifest = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8')) as {

@@ -133,6 +133,23 @@ export function codexAppServerArgv(): string[] {
   return [process.execPath, CODEX_PACKAGE_BIN, 'app-server', '--stdio']
 }
 
+/**
+ * Add Electron's Node-mode marker when its executable launches the official
+ * JavaScript wrapper. Native Node ignores the marker, so non-Electron children
+ * retain their supplied environment exactly.
+ * @param env - Explicit environment entries for the child process.
+ * @param electronVersion - Electron version of the current host, when present.
+ * @returns the environment passed to the app-server process.
+ */
+export function codexAppServerEnv(
+  env: NodeJS.ProcessEnv,
+  electronVersion = process.versions.electron,
+): NodeJS.ProcessEnv {
+  return electronVersion === undefined
+    ? env
+    : { ...env, ELECTRON_RUN_AS_NODE: '1' }
+}
+
 /** Fully resolved inputs for one Codex app-server run. */
 export interface CodexRunSpec {
   /** Parent Session workspace, also supplied to `thread/start`. */
@@ -238,7 +255,7 @@ export async function startCodexRun(
       cwd: spec.cwd,
       stdio: { stdin: 'pipe', stdout: 'pipe', stderr: 'pipe' },
       graceMs: spec.disposeGraceMs,
-      env: spec.env,
+      env: codexAppServerEnv(spec.env),
     })
   } catch (error: unknown) {
     throw new CodexRunFailure({
